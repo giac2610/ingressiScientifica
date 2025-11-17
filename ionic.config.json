@@ -1,0 +1,7 @@
+{
+  "name": "ingressiScientifica",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
