@@ -1,2 +1,7 @@
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
+
+:root {
+  /* Set the primary font for the whole app */
+  --ion-font-family: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+}
