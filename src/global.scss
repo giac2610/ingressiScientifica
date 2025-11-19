@@ -40,7 +40,7 @@
 @font-face {
   font-family: 'Helvetica Neue';
   font-style: normal;
-  font-weight: 400; /* Normal */
+  font-weight: 100; /* Normal */
   src: url('src/assets/fonts/HelveticaNeueBlack.otf') format('opentype'),
        url('src/assets/fonts/HelveticaNeueBlack.otf') format('opentype');
 }
@@ -48,7 +48,7 @@
 /* Bold Weight */
 @font-face {
   font-family: 'Helvetica Neue';
-  font-style: normal;
+  font-style: bold;
   font-weight: 700; /* Bold */
   src: url('src/assets/fonts/HelveticaNeueBold.otf') format('oprntype'),
        url('src/assets/fonts/HelveticaNeueBold.otf') format('opentype');

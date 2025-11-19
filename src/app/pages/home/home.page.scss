@@ -4,12 +4,30 @@
   --ion-background-color: transparent;
 }
 
+/* Posiziona le particelle fisse sullo sfondo */
+#tsparticles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Dietro a tutto */
+  // background-color: #0b1121; /* Blu scuro Scientifica */
+}
+
 .box-header{
   display: flex;
   height: auto; /* non occupare tutta la viewport */
   padding-top: 24px;
   padding-bottom: 24px;
   padding-inline: 16px;
+
+  /* Aggiunto: Base per l'effetto blur e z-index */
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  position: relative;
+  z-index: 1;
 }
 
 .box-content{
@@ -26,6 +44,13 @@
   min-height: calc(100svh - 120px); /* occupa la viewport senza creare scroll */
   padding: 16px;
   text-align: center;
+  
+  /* Aggiunto: Applicazione del blur al contenitore principale */
+  background: rgba(255, 255, 255, 0.05); 
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  position: relative;
+  z-index: 1; /* Assicura che il contenuto sia sopra le particelle */
 }
 
 .logo img{
@@ -44,44 +69,28 @@
   align-items: center;
 }
 
-/* Debug: forzare visibilità dei bottoni se nascosti da altri stili */
-.box-container ion-button{
+/* STILI AGGIORNATI PER I BOTTONI: Colore, Blur e Dimensione Maggiore */
+.box-container ion-button {
+  /* 1. Sfondo colorato e semitrasparente (Primary Blue: 0, 163, 225) */
+  // --background: rgba(0, 163, 225, 0.3); 
+  --color: rgba(48, 49, 51); /* Testo bianco */
+  --font-weight: normal;
+  /* Rimuove completamente il bordo */
+  --border-style: none;
+  --border-width: 0;
+  --box-shadow: none;
+
+  /* 2. Aumenta la dimensione dei bottoni tramite il padding */
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  // padding: 10px 16px !important;
-  // color: #000 !important;
-  // background: #fff !important;
-  // border: 1px solid rgba(0,0,0,0.12) !important;
-  // box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+  padding: 14px 24px !important; 
+  font-size: 1.75em; /* Rende il testo leggermente più grande */
+  height: 200px;
+  width: 460px;
 }
-
-/* Rimuovere o commentare il blocco debug una volta risolto */
 
 /* Disabilita scroll verticale per questa pagina (se vuoi evitare pagine scrollabili) */
 ion-content {
   --overflow: hidden;
-}
-
-#tsparticles {
-    /* Position the canvas to cover the entire ion-content area */
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    /* Ensure it is behind the rest of your content (logo, buttons) */
-    z-index: 0;
-}
-
-/* Ensure your content is on top of the particles and the ion-content is transparent */
-ion-content {
-    /* Remove any default background color from ion-content, allowing you to see through to the particles. */
-    --background: transparent;
-}
-
-/* Give your header and button container a higher z-index so they are visible */
-.box-header, .box-container {
-    position: relative; /* Required for z-index to work */
-    z-index: 1;
 }
