@@ -33,24 +33,53 @@ export class HomePage {
       }
     };
 
-    try {
+try {
       await ensure();
       const tp = (window as any).tsParticles;
       if (tp && typeof tp.load === 'function') {
         await tp.load('tsparticles', {
           fullScreen: { enable: false },
           particles: {
-            number: { value: 60 },
-            color: { value: "#ffffff" },
+            number: { value: 5 }, // Slightly increased count
+            color: {
+                // Use multiple colors from your palette
+                value: ["#00A3E1", "#4bd4f2", "#88f2f2"]
+            },
+            shape: {
+                type: "circle" // Explicitly setting shape to circle
+            },
+            opacity: {
+                value: 0.5, // 1. Reduced base opacity for a softer sphere
+                random: false
+            },
             links: {
               enable: true,
               distance: 150,
               color: "#ffffff",
-              opacity: 0.4,
-              width: 1
+              opacity: 0.2, // Reduced opacity for links
+              width: 10
             },
-            move: { enable: true, speed: 2 },
-            size: { value: 2 }
+            move: {
+                enable: true,
+                speed: 10,
+                direction: "none",
+                random: true,
+                straight: false,
+                out_mode: "out",
+                bounce: true,
+                warp: true
+            },
+            size: {
+                value: { min:350, max: 450 }, // Variable, larger sphere sizes (was fixed 2)
+                random: true
+            },
+            shadow: {
+                enable: true,
+                blur: 500, // High blur radius creates the soft contour
+                color: "#4bd4f2", // Use a light palette color for the glow
+                offset: { x: 20, y: 15 },
+                opacity: 1 // Full opacity for the glow effect
+            }
           },
           interactivity: {
             events: {

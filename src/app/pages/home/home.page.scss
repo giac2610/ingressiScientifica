@@ -4,17 +4,6 @@
   --ion-background-color: transparent;
 }
 
-/* Posiziona le particelle fisse sullo sfondo */
-#tsparticles {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1; /* Dietro a tutto */
-  // background-color: #0b1121; /* Blu scuro Scientifica */
-}
-
 .box-header{
   display: flex;
   height: auto; /* non occupare tutta la viewport */
@@ -60,11 +49,11 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 10px 16px !important;
-  color: #000 !important;
-  background: #fff !important;
-  border: 1px solid rgba(0,0,0,0.12) !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+  // padding: 10px 16px !important;
+  // color: #000 !important;
+  // background: #fff !important;
+  // border: 1px solid rgba(0,0,0,0.12) !important;
+  // box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
 }
 
 /* Rimuovere o commentare il blocco debug una volta risolto */
@@ -72,4 +61,27 @@
 /* Disabilita scroll verticale per questa pagina (se vuoi evitare pagine scrollabili) */
 ion-content {
   --overflow: hidden;
+}
+
+#tsparticles {
+    /* Position the canvas to cover the entire ion-content area */
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    /* Ensure it is behind the rest of your content (logo, buttons) */
+    z-index: 0;
+}
+
+/* Ensure your content is on top of the particles and the ion-content is transparent */
+ion-content {
+    /* Remove any default background color from ion-content, allowing you to see through to the particles. */
+    --background: transparent;
+}
+
+/* Give your header and button container a higher z-index so they are visible */
+.box-header, .box-container {
+    position: relative; /* Required for z-index to work */
+    z-index: 1;
 }
