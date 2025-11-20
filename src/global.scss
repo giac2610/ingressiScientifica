@@ -37,23 +37,22 @@
 @import '@ionic/angular/css/palettes/dark.system.css';
 
 /* Regular Weight */
+/* Regular Weight - Correzione del percorso e del mapping */
 @font-face {
   font-family: 'Helvetica Neue';
   font-style: normal;
-  font-weight: 100; /* Normal */
-  src: url('src/assets/fonts/HelveticaNeueBlack.otf') format('opentype'),
-       url('src/assets/fonts/HelveticaNeueBlack.otf') format('opentype');
+  font-weight: 400; /* Normal */
+  /* Percorso corretto (inizia con /assets) e file più adatto al peso 400 */
+  src: url('/assets/fonts/HelveticaNeueMedium.otf') format('opentype'); 
 }
 
-/* Bold Weight */
+/* Bold Weight - Correzione del percorso */
 @font-face {
   font-family: 'Helvetica Neue';
-  font-style: bold;
+  font-style: normal;
   font-weight: 700; /* Bold */
-  src: url('src/assets/fonts/HelveticaNeueBold.otf') format('oprntype'),
-       url('src/assets/fonts/HelveticaNeueBold.otf') format('opentype');
+  src: url('/assets/fonts/HelveticaNeueBold.otf') format('opentype'); 
 }
-
 :root {
 	--ion-color-primary: #00A3E1;
 	--ion-color-primary-rgb: 0,163,225;

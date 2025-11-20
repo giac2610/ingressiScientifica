@@ -1,33 +1,51 @@
-/* Rende trasparente lo sfondo di Ionic */
+/* ========================================================= */
+/* 1. STILI PER LO SFONDO (CANVAS WEBGL) */
+/* ========================================================= */
+
+// Rende trasparente lo sfondo di Ionic
 .transparent-bg {
+  /* Assicura che ion-content non abbia background opaco */
   --background: transparent;
   --ion-background-color: transparent;
+  position: relative;
 }
 
-/* Posiziona le particelle fisse sullo sfondo */
-#tsparticles {
+/* Stile del canvas WebGL (obbligatorio per coprire lo schermo) */
+.background-canvas {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1; /* Dietro a tutto */
-  // background-color: #0b1121; /* Blu scuro Scientifica */
+  z-index: 0; // Dietro a tutto
 }
+
+
+/* Rimuovi la sezione gradient-wrapper e gradient non più necessaria */
+/* Rimuovi tutti i @keyframes move, morph, color-shift */
+
+/* Disabilita scroll verticale per questa pagina */
+ion-content {
+  --overflow: hidden;
+}
+
+/* ========================================================= */
+/* 2. STILI PER IL CONTENUTO (HEADER E BOTTONI) */
+/* ========================================================= */
 
 .box-header{
   display: flex;
-  height: auto; /* non occupare tutta la viewport */
+  height: auto;
   padding-top: 24px;
   padding-bottom: 24px;
   padding-inline: 16px;
 
-  /* Aggiunto: Base per l'effetto blur e z-index */
-  background: rgba(255, 255, 255, 0.05);
+  /* Blur effetto vetro smerigliato */
+  // background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   position: relative;
-  z-index: 1;
+  z-index: 10;
 }
 
 .box-content{
@@ -41,16 +59,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100svh - 120px); /* occupa la viewport senza creare scroll */
+  min-height: calc(100svh - 120px);
   padding: 16px;
   text-align: center;
   
-  /* Aggiunto: Applicazione del blur al contenitore principale */
-  background: rgba(255, 255, 255, 0.05); 
+  /* Blur effetto vetro smerigliato */
+  // background: rgba(255, 255, 255, 0.05); 
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   position: relative;
-  z-index: 1; /* Assicura che il contenuto sia sopra le particelle */
+  z-index: 10;
 }
 
 .logo img{
@@ -69,28 +87,32 @@
   align-items: center;
 }
 
-/* STILI AGGIORNATI PER I BOTTONI: Colore, Blur e Dimensione Maggiore */
+/* STILI BOTTONI */
 .box-container ion-button {
-  /* 1. Sfondo colorato e semitrasparente (Primary Blue: 0, 163, 225) */
-  // --background: rgba(0, 163, 225, 0.3); 
-  --color: rgba(48, 49, 51); /* Testo bianco */
-  --font-weight: normal;
-  /* Rimuove completamente il bordo */
+
+  font-family: 'Helvetica Neue', sans-serif !important;
+  --background: rgba(0, 163, 225, 0.7); 
+  --color: #fff;
+  // --color: rgb(48,49,51);
   --border-style: none;
   --border-width: 0;
-  --box-shadow: none;
+  --border-radius:  12px !important;
+  // --box-shadow: none !important;
+  width: 320px;
+  height: 160px;
 
-  /* 2. Aumenta la dimensione dei bottoni tramite il padding */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  font-weight: bold; 
+  text-transform: none;
+  // box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+  --box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+  
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 14px 24px !important; 
-  font-size: 1.75em; /* Rende il testo leggermente più grande */
-  height: 200px;
-  width: 460px;
-}
-
-/* Disabilita scroll verticale per questa pagina (se vuoi evitare pagine scrollabili) */
-ion-content {
-  --overflow: hidden;
+  font-size: 1.75em;
+  z-index: 11;
 }

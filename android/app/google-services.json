@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "283037814528",
+    "project_id": "ingrressiscientifica",
+    "storage_bucket": "ingrressiscientifica.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:283037814528:android:e9c45ee91033e70c1eade5",
+        "android_client_info": {
+          "package_name": "com.scientifica.ingressi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqZUgtww0qf7J-Qr1nalJvOGKecnjUTVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
