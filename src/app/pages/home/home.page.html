@@ -20,7 +20,7 @@
         </ion-card>
       </ion-row>
       <ion-row>
-        <ion-card (click)="setView('guests')">
+        <ion-card (click)="setView('guestsHome')">
           Visitatori
         </ion-card>
         <ion-card (click)="setView('fornitori')">
@@ -30,7 +30,7 @@
     </ion-grid>
   </div>
   <!-- STARTUP -->
-     <div class="menu-wrapper" [class.active]="currentView === 'startup'">
+  <div class="menu-wrapper" [class.active]="currentView === 'startup'">
     <ion-grid class="center-grid">
       <ion-row>
         <ion-card (click)="setViewStartup('exolab')" style="--background: url('https://scientifica.vc/wp-content/uploads/2025/06/exolab_V02.png') no-repeat; background-size: contain; background-position: center; padding: 10px; background-origin: content-box;"></ion-card>
@@ -39,14 +39,120 @@
       <ion-row>
         <ion-card (click)="setViewStartup('libera')"style="--background: url('https://scientifica.vc/wp-content/uploads/2025/06/Libera_V02.png') no-repeat; background-size: contain; background-position: center; padding: 10px; background-origin: content-box;"></ion-card>
       </ion-row>
-      <!-- <ion-row>
-        <ion-card (click)="setView('guests')">
-          Libera
-        </ion-card>
-        <ion-card (click)="setView('fornitori')">
-          Fornitori
-        </ion-card> -->
-      <!-- </ion-row> -->
     </ion-grid>
   </div>
+  <!-- GUESTS -->
+  <div class="menu-wrapper" [class.active]="currentView === 'guestsHome'">
+    <ion-grid class="center-grid">
+      <ion-row>
+        <ion-card (click)="setView('guestsData')">
+          Accesso
+        </ion-card>
+        <ion-card (click)="setView('guestsExit')">
+          Uscita
+        </ion-card>
+      </ion-row>
+    </ion-grid>
+  </div>
+  <!-- GUESTSHOME - ACCESSO -->
+  <div class="menu-wrapper" [class.active]="currentView === 'guestsData'">
+    <ion-card class="input-card">
+          <ion-card-header>
+            <ion-card-title>Registrazione Ospite</ion-card-title>
+          </ion-card-header>
+          
+          <ion-card-content>
+            <ion-item class="custom-input">
+              <ion-input label="Nome e Cognome" labelPlacement="floating" [(ngModel)]="guestName"></ion-input>
+            </ion-item>
+
+            <ion-item class="custom-input">
+              <ion-select label="Motivazione Ingresso" labelPlacement="floating" [(ngModel)]="selectedReason" interface="popover">
+                <ion-select-option *ngFor="let reason of reasons" [value]="reason">
+                  {{ reason }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <div class="signature-trigger" (click)="openPrivacyModal()">
+              <div class="signature-placeholder" [class.signed]="signatureImage">
+                <p *ngIf="!signatureImage">Clicca qui per leggere l'informativa e firmare</p>
+                <img *ngIf="signatureImage" [src]="signatureImage" alt="Firma Ospite" />
+              </div>
+              <div class="status-icon">
+                <ion-icon [name]="signatureImage ? 'checkmark-circle' : 'create-outline'"></ion-icon>
+              </div>
+            </div>
+
+            <ion-button expand="block" class="submit-btn" [disabled]="!signatureImage || !guestName" (click)="setView('main')">
+              Conferma Ingresso
+            </ion-button>
+            
+            <ion-button fill="clear" color="medium" (click)="setView('main')">Annulla</ion-button>
+          </ion-card-content>
+        </ion-card>
+
+    <!-- <ion-grid class="center-grid">
+      <ion-row>
+        
+        
+      </ion-row>
+    </ion-grid> -->
+  </div>
+
+  <ion-modal [isOpen]="isPrivacyModalOpen" (didDismiss)="closePrivacyModal()" (didPresent)="onModalDidPresent()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Accettazione Privacy</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closePrivacyModal()">Chiudi</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content class="ion-padding">
+        <div class="privacy-text">
+          <h3>Informativa sulla Sicurezza</h3>
+          <p>
+            Dichiaro di aver preso visione delle norme di sicurezza vigenti all'interno della struttura Scientifica...
+            (Inserisci qui tutto il testo legale necessario).
+          </p>
+          <p>
+            Accetto il trattamento dei dati personali ai fini della registrazione degli accessi...
+          </p>
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Expedita, voluptas quasi corporis ratione voluptatibus, quia eum quos distinctio ipsa dolorem reiciendis adipisci totam beatae id vero molestias nisi alias quidem!
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus, dignissimos. Temporibus ipsa laudantium, quidem quia libero ratione quibusdam repellat corporis sint amet ipsam tenetur esse earum molestias praesentium ea voluptatem!
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam, eum soluta? Ipsum, libero numquam delectus aut quae repellat, ratione accusamus adipisci, doloribus repellendus tenetur reiciendis quis quod? Quos, praesentium omnis.
+        </div>
+
+        <div class="signature-area">
+          <p>Firma qui sotto:</p>
+          <canvas #signatureCanvas 
+            (mousedown)="startDrawing($event)" (touchstart)="startDrawing($event)"
+            (mousemove)="moved($event)" (touchmove)="moved($event)"
+            (mouseup)="endDrawing()" (touchend)="endDrawing()"
+            class="signature-pad">
+          </canvas>
+          
+          <ion-button size="small" fill="outline" color="medium" (click)="clearSignature()">
+            Cancella Firma
+          </ion-button>
+        </div>
+      </ion-content>
+
+      <ion-footer>
+        <ion-toolbar>
+          <ion-row>
+
+            <ion-col>
+              <ion-button expand="block" color="success" (click)="acceptAndSign()">
+                Firmando accetti l'informativa
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-toolbar>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
 </ion-content>

@@ -1,16 +1,34 @@
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 } from '@angular/core';
-import { IonContent, IonButton, IonRow, IonGrid, IonCol, IonCard } from '@ionic/angular/standalone';
+import { IonContent,IonSelect, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonCard, IonGrid, IonRow, IonContent, CommonModule],
+  imports: [IonFooter, FormsModule, IonButtons, IonTitle, IonHeader, IonCol, IonToolbar, IonModal, IonIcon, IonItem, IonSelect, IonButton, IonSelectOption, IonCardHeader, IonInput, IonCardContent, IonCardTitle, IonCard, IonGrid, IonRow, IonContent, CommonModule],
 })
 
 export class HomePage implements AfterViewInit, OnDestroy {
   @ViewChild('backgroundCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('signatureCanvas') signatureCanvas!: ElementRef<HTMLCanvasElement>;
+
+  // Dati Utente
+  guestName: string = '';
+  selectedReason: string = '';
+  signatureImage: string | null = null; // Qui salveremo la firma in base64
   
+  // Opzioni Menu a Tendina
+  reasons: string[] = ['Visita Aziendale', 'Colloquio', 'Consegna Merci', 'Manutenzione', 'Altro'];
+
+  // Stato Modale
+  isPrivacyModalOpen: boolean = false;
+  
+  // Variabili per il disegno
+  private signaturePadElement: any;
+  private signatureCtx: any;
+  private isDrawing: boolean = false;
+
   private animationFrameId: number | undefined;
   private resizeListener: (() => void) | undefined;
   
@@ -85,9 +103,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
   `;
 
-  currentView:'main' | 'guests' | 'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera'= 'main';
+  currentView:'main' | 'guestsHome' | 'guestsData' | 'guestsExit' |'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera'= 'main';
 
-  setView(view: 'main' | 'guests' | 'utenti3'| 'startup' | 'fornitori') {
+  setView(view: 'main' | 'guestsHome' | 'guestsData' | 'guestsExit' | 'utenti3'| 'startup' | 'fornitori') {
     this.currentView = view;
   }
 
@@ -266,7 +284,92 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.render();
   }
 
-  public goToPage(page: string) {
-    window.location.href = `/${page}`;
+  // --- LOGICA MODALE E FIRMA ---
+
+  openPrivacyModal() {
+    this.isPrivacyModalOpen = true;
   }
+
+  closePrivacyModal() {
+    this.isPrivacyModalOpen = false;
+    this.isDrawing = false;
+  }
+
+  // Chiamato quando il modale ha finito di aprirsi (importante per inizializzare il canvas)
+  onModalDidPresent() {
+    this.initSignatureCanvas();
+  }
+
+  initSignatureCanvas() {
+    if (!this.signatureCanvas) return;
+    
+    this.signaturePadElement = this.signatureCanvas.nativeElement;
+    // Imposta dimensioni canvas in base al genitore
+    const parentWidth = this.signaturePadElement.parentElement.offsetWidth;
+    this.signaturePadElement.width = parentWidth;
+    this.signaturePadElement.height = 200; // Altezza fissa o dinamica
+    
+    this.signatureCtx = this.signaturePadElement.getContext('2d');
+    this.signatureCtx.lineWidth = 2;
+    this.signatureCtx.lineCap = 'round';
+    this.signatureCtx.strokeStyle = '#000000';
+  }
+
+  // --- EVENTI DISEGNO (Mouse & Touch) ---
+
+  startDrawing(ev: any) {
+    this.isDrawing = true;
+    const { x, y } = this.getCoordinates(ev);
+    this.signatureCtx.beginPath();
+    this.signatureCtx.moveTo(x, y);
+  }
+
+  moved(ev: any) {
+    if (!this.isDrawing) return;
+    const { x, y } = this.getCoordinates(ev);
+    this.signatureCtx.lineTo(x, y);
+    this.signatureCtx.stroke();
+  }
+
+  endDrawing() {
+    this.isDrawing = false;
+  }
+
+  // Calcola coordinate relative al canvas
+  getCoordinates(ev: any) {
+    let x, y;
+    const rect = this.signaturePadElement.getBoundingClientRect();
+    
+    if (ev.changedTouches && ev.changedTouches.length > 0) {
+      // Touch event
+      x = ev.changedTouches[0].clientX - rect.left;
+      y = ev.changedTouches[0].clientY - rect.top;
+    } else {
+      // Mouse event
+      x = ev.clientX - rect.left;
+      y = ev.clientY - rect.top;
+    }
+    return { x, y };
+  }
+
+  clearSignature() {
+    if (this.signatureCtx) {
+      this.signatureCtx.clearRect(0, 0, this.signaturePadElement.width, this.signaturePadElement.height);
+    }
+    this.signatureImage = null;
+  }
+
+  acceptAndSign() {
+    // Salva la firma come immagine base64
+    if (this.signaturePadElement) {
+      this.signatureImage = this.signaturePadElement.toDataURL();
+    }
+    console.log('Firma salvata:', this.signatureImage);
+    console.log('Dati:', this.guestName, this.selectedReason);
+    
+    // Chiudi modale e procedi
+    this.closePrivacyModal();
+    // Qui puoi aggiungere la logica per salvare tutto nel database o cambiare vista
+  }
+
 }
