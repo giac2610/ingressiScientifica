@@ -55,20 +55,52 @@ ion-content {
   height: 100%;
 }
 
-.box-container{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: calc(100svh - 120px);
-  padding: 16px;
-  text-align: center;
+// .menu-wrapper{
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   min-height: calc(100svh - 120px);
+//   padding: 16px;
+//   text-align: center;
   
-  /* Blur effetto vetro smerigliato */
-  // background: rgba(255, 255, 255, 0.05); 
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  position: relative;
-  z-index: 10;
+//   /* Blur effetto vetro smerigliato */
+//   // background: rgba(255, 255, 255, 0.05); 
+//   backdrop-filter: blur(4px);
+//   -webkit-backdrop-filter: blur(4px);
+//   position: relative;
+//   z-index: 10;
+// }
+/* --- STILE BASE (Vale per tutti) --- */
+.menu-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -40%) scale(0.95); /* Partenza animazione */
+  width: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.4s ease-in-out;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Di base centra tutto */
+}
+
+/* --- QUANDO ATTIVO (Animazione finale) --- */
+.menu-wrapper.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1); /* Centro perfetto */
+}
+
+/* --- PERSONALIZZAZIONE SPECIFICA PER IL MENU STARTUP --- */
+.menu-wrapper.startup-layout.active {
+  /* ESEMPIO: Invece che al centro (-50%), lo voglio più in alto (-70%) */
+  transform: translate(-50%, -70%) scale(1);
+  
+  /* ESEMPIO: Voglio i bottoni allineati a sinistra invece che al centro */
+  align-items: flex-start; 
+  padding-left: 50px;
 }
 
 .logo img{
@@ -78,28 +110,59 @@ ion-content {
 
 .center-grid{
   width: auto;
+  
 }
 
-.box-container ion-row{
+.menu-wrapper ion-row{
   display: flex;
   gap: 12px;
   justify-content: center;
   align-items: center;
+
+  flex-wrap: nowrap;       /* Impedisce di andare a capo */
+  overflow-x: auto;        /* Abilita scroll orizzontale */
+  overflow-y: hidden;
+
+  scroll-snap-type: x mandatory; 
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.menu-wrapper ion-col{
+  // display: flex;
+  // flex: 0 0 50%;
+  // gap: 12px;
+  // justify-content: center;
+  // align-items: center;
+
+  /* Blocca la larghezza al 50% del contenitore padre */
+  flex: 0 0 50%; 
+  // max-width: 50% !important; 
+  
+  display: flex;
+  justify-content: center;
+  
+  /* Punto di aggancio per lo snap */
+  scroll-snap-align: start;
 }
 
 /* STILI BOTTONI */
-.box-container ion-button {
+.menu-wrapper ion-card {
 
   font-family: 'Helvetica Neue', sans-serif !important;
-  --background: rgba(0, 163, 225, 0.7); 
+  --background: rgba(0, 163, 225, 0.9); 
   --color: #fff;
   // --color: rgb(48,49,51);
   --border-style: none;
   --border-width: 0;
-  --border-radius:  12px !important;
+  border-radius:  17px !important;
   // --box-shadow: none !important;
-  width: 320px;
-  height: 160px;
+  width: 420px;
+  height: 260px;
 
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -113,6 +176,7 @@ ion-content {
   align-items: center !important;
   justify-content: center !important;
   padding: 14px 24px !important; 
+  margin: 24px;
   font-size: 1.75em;
   z-index: 11;
 }

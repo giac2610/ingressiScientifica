@@ -1,15 +1,16 @@
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonRow, IonGrid } from '@ionic/angular/standalone';
-
+import { IonContent, IonButton, IonRow, IonGrid, IonCol, IonCard } from '@ionic/angular/standalone';
+import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonGrid, IonRow, IonButton, IonContent],
+  imports: [IonCard, IonGrid, IonRow, IonContent, CommonModule],
 })
 
 export class HomePage implements AfterViewInit, OnDestroy {
   @ViewChild('backgroundCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+  
   private animationFrameId: number | undefined;
   private resizeListener: (() => void) | undefined;
   
@@ -83,6 +84,16 @@ export class HomePage implements AfterViewInit, OnDestroy {
         gl_FragColor = vec4(finalColor, 1.0);
     }
   `;
+
+  currentView:'main' | 'guests' | 'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera'= 'main';
+
+  setView(view: 'main' | 'guests' | 'utenti3'| 'startup' | 'fornitori') {
+    this.currentView = view;
+  }
+
+  setViewStartup(view: 'exolab' | 'loto' | 'libera') {
+    this.currentView = view;
+  }
 
   constructor(private renderer: Renderer2) {}
 
@@ -253,5 +264,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.resizeListener = this.renderer.listen(window, 'resize', this.resizeCanvas);
 
     this.render();
+  }
+
+  public goToPage(page: string) {
+    window.location.href = `/${page}`;
   }
 }

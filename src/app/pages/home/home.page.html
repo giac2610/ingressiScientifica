@@ -2,26 +2,51 @@
     
   <canvas #backgroundCanvas class="background-canvas"></canvas>
   
-  <div class="box-header">
+  <div class="box-header" (click)="setView('main')">
     <div class="logo" data-maxheight="60">
       <img fetchpriority="high" decoding="async" src="https://scientifica.vc/wp-content/uploads/2025/05/Favicon-Scientifica_Positive.png" alt="logo" class="img-responsive" data-cmp-info="10">
     </div>
   
   </div>
-  <div class="box-container">
+  <!-- MAIN MENU -->
+  <div class="menu-wrapper" [class.active]="currentView === 'main'">
     <ion-grid class="center-grid">
       <ion-row>
-        <ion-button>
+        <ion-card (click)="setView('startup')">
           Utenti Startup
-        </ion-button>
-        <ion-button>
+        </ion-card>
+        <ion-card (click)="setView('utenti3')">
           Utenti Terzi
-        </ion-button>
-        <ion-button>
-          Ospiti
-        </ion-button>
+        </ion-card>
+      </ion-row>
+      <ion-row>
+        <ion-card (click)="setView('guests')">
+          Visitatori
+        </ion-card>
+        <ion-card (click)="setView('fornitori')">
+          Fornitori
+        </ion-card>
       </ion-row>
     </ion-grid>
   </div>
-
+  <!-- STARTUP -->
+     <div class="menu-wrapper" [class.active]="currentView === 'startup'">
+    <ion-grid class="center-grid">
+      <ion-row>
+        <ion-card (click)="setViewStartup('exolab')" style="--background: url('https://scientifica.vc/wp-content/uploads/2025/06/exolab_V02.png') no-repeat; background-size: contain; background-position: center; padding: 10px; background-origin: content-box;"></ion-card>
+        <ion-card (click)="setViewStartup('loto')"style="--background: url('https://scientifica.vc/wp-content/uploads/2025/06/Loto_V02.png') no-repeat; background-size: contain; background-position: center; padding: 10px; background-origin: content-box;"></ion-card>
+      </ion-row>
+      <ion-row>
+        <ion-card (click)="setViewStartup('libera')"style="--background: url('https://scientifica.vc/wp-content/uploads/2025/06/Libera_V02.png') no-repeat; background-size: contain; background-position: center; padding: 10px; background-origin: content-box;"></ion-card>
+      </ion-row>
+      <!-- <ion-row>
+        <ion-card (click)="setView('guests')">
+          Libera
+        </ion-card>
+        <ion-card (click)="setView('fornitori')">
+          Fornitori
+        </ion-card> -->
+      <!-- </ion-row> -->
+    </ion-grid>
+  </div>
 </ion-content>
