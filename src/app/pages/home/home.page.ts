@@ -1,12 +1,13 @@
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 } from '@angular/core';
-import { IonContent,IonSelect, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter } from '@ionic/angular/standalone';
+import { IonContent,IonSelect, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonLabel, IonList } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DatabaseService } from 'src/app/services/database';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonFooter, FormsModule, IonButtons, IonTitle, IonHeader, IonCol, IonToolbar, IonModal, IonIcon, IonItem, IonSelect, IonButton, IonSelectOption, IonCardHeader, IonInput, IonCardContent, IonCardTitle, IonCard, IonGrid, IonRow, IonContent, CommonModule],
+  imports: [IonList, IonLabel, IonFooter, FormsModule, IonButtons, IonTitle, IonHeader, IonCol, IonToolbar, IonModal, IonIcon, IonItem, IonSelect, IonButton, IonSelectOption, IonCardHeader, IonInput, IonCardContent, IonCardTitle, IonCard, IonGrid, IonRow, IonContent, CommonModule],
 })
 
 export class HomePage implements AfterViewInit, OnDestroy {
@@ -16,7 +17,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
   // Dati Utente
   guestName: string = '';
   selectedReason: string = '';
-  signatureImage: string | null = null; // Qui salveremo la firma in base64
+  signatureImage: string | null = null; // Qui è da la firma in base64
+  
   
   // Opzioni Menu a Tendina
   reasons: string[] = ['Visita Aziendale', 'Colloquio', 'Consegna Merci', 'Manutenzione', 'Altro'];
@@ -113,7 +115,15 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.currentView = view;
   }
 
-  constructor(private renderer: Renderer2) {}
+  constructor(private renderer: Renderer2, private dbService: DatabaseService) {
+    
+  }
+
+  activeGuests$ = this.dbService.getActiveGuests();
+
+  doCheckout(id: string) {
+    this.dbService.checkOutGuest(id);
+  }
 
   ngAfterViewInit() {
     this.initWebGL();

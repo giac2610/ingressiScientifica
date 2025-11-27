@@ -91,15 +91,32 @@
             <ion-button fill="clear" color="medium" (click)="setView('main')">Annulla</ion-button>
           </ion-card-content>
         </ion-card>
-
-    <!-- <ion-grid class="center-grid">
-      <ion-row>
-        
-        
-      </ion-row>
-    </ion-grid> -->
   </div>
 
+  <!-- GUEST USCITA -->
+   <div class="menu-wrapper" [class.active]="currentView === 'guestsExit'">
+    <ion-card class="input-card">
+      <ion-card-header>
+        <ion-card-title>Ospiti Presenti</ion-card-title>
+        <!-- <ion-button size="small" (click)="downloadReport()">Scarica Excel</ion-button> -->
+      </ion-card-header>
+      <ion-content style="height: 300px">
+        <ion-list>
+          <ion-item *ngFor="let guest of activeGuests$ | async">
+            <ion-label>
+              <h2>{{ guest.name }}</h2>
+              <p>{{ guest.entryTime | date:'shortTime' }} - {{ guest.reason }}</p>
+            </ion-label>
+            <ion-button slot="end" color="warning" (click)="doCheckout(guest.id)">
+              Uscita
+            </ion-button>
+          </ion-item>
+        </ion-list>
+      </ion-content>
+      <ion-button fill="clear" (click)="setView('main')">Indietro</ion-button>
+    </ion-card>
+  </div>
+  <!-- PRIVACY MODAL -->
   <ion-modal [isOpen]="isPrivacyModalOpen" (didDismiss)="closePrivacyModal()" (didPresent)="onModalDidPresent()">
     <ng-template>
       <ion-header>
