@@ -80,7 +80,7 @@
                 <img *ngIf="signatureImage" [src]="signatureImage" alt="Firma Ospite" />
               </div>
               <div class="status-icon">
-                <ion-icon [name]="signatureImage ? 'checkmark-circle' : 'create-outline'"></ion-icon>
+                <ion-icon [name]="signatureImage ? 'checkmark-circle' : 'create'"></ion-icon>
               </div>
             </div>
 
@@ -102,15 +102,24 @@
       </ion-card-header>
       <ion-content style="height: 300px">
         <ion-list>
-          <ion-item *ngFor="let guest of activeGuests$ | async">
-            <ion-label>
-              <h2>{{ guest.name }}</h2>
-              <p>{{ guest.entryTime | date:'shortTime' }} - {{ guest.reason }}</p>
-            </ion-label>
-            <ion-button slot="end" color="warning" (click)="doCheckout(guest.id)">
-              Uscita
-            </ion-button>
-          </ion-item>
+          @for (guest of activeGuests$ | async; track guest.id) {
+            <ion-item>
+              <ion-label>
+                <h2>{{ guest.name }}</h2>
+                <p>{{ guest.entryTime | date:'shortTime' }} - {{ guest.reason }}</p>
+              </ion-label>
+              
+              <ion-button slot="end" color="warning" (click)="doCheckout(guest.id!)">
+                Uscita
+              </ion-button>
+            </ion-item>
+          } @empty {
+            <ion-item>
+              <ion-label class="ion-text-center">
+                <p>Nessun ospite presente.</p>
+              </ion-label>
+            </ion-item>
+          }
         </ion-list>
       </ion-content>
       <ion-button fill="clear" (click)="setView('main')">Indietro</ion-button>

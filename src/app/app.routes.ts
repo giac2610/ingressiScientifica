@@ -15,4 +15,8 @@ export const routes: Routes = [
     path: 'guests',
     loadComponent: () => import('./pages/guests/guests.page').then( m => m.GuestsPage)
   },
+  {
+    path: 'backoffice',
+    loadComponent: () => import('./pages/backoffice/backoffice.page').then( m => m.BackofficePage)
+  },
 ];

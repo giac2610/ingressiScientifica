@@ -8,15 +8,16 @@ import {
   collectionData, 
   query, 
   where, 
-  orderBy 
+  orderBy,
+  deleteDoc // Aggiunto se serve per il backoffice
 } from '@angular/fire/firestore';
 import { Observable, map } from 'rxjs';
 
 // INTERFACCE DATI
 export interface Guest {
-  id: string;
+  id?: string;
   name: string;
-  reason: string;      // 'Visita Aziendale', 'Colloquio', etc.
+  reason: string; 
   entryTime: string;   // ISO String
   exitTime?: string;   // ISO String o null
   status: 'IN' | 'OUT';
@@ -26,6 +27,7 @@ export interface Guest {
 export interface Startup {
   id?: string;
   name: string;
+  logo?: string;
   employees: Employee[];
 }
 
@@ -68,7 +70,8 @@ export class DatabaseService {
   // 3. Ottieni lista ospiti ATTUALI (Stato 'IN')
   getActiveGuests(): Observable<Guest[]> {
     const guestsRef = collection(this.firestore, 'guests');
-    const q = query(guestsRef, where('status', '==', 'IN'), orderBy('entryTime', 'desc'));
+    // const q = query(guestsRef, where('status', '==', 'IN'), orderBy('entryTime', 'desc'));
+    const q = query(guestsRef, where('status', '==', 'IN'));
     return collectionData(q, { idField: 'id' }) as Observable<Guest[]>;
   }
 
@@ -82,6 +85,17 @@ export class DatabaseService {
   // ==========================================
   // GESTIONE STARTUP
   // ==========================================
+
+  addStartup(startup: Startup) {
+    const startupsRef = collection(this.firestore, 'startups');
+    return addDoc(startupsRef, startup);
+  }
+
+  // Elimina Startup
+  deleteStartup(id: string) {
+    const docRef = doc(this.firestore, 'startups', id);
+    return deleteDoc(docRef);
+  }
 
   getStartups(): Observable<Startup[]> {
     const startupsRef = collection(this.firestore, 'startups');

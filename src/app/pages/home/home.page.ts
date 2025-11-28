@@ -2,7 +2,7 @@ import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 }
 import { IonContent,IonSelect, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonLabel, IonList } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DatabaseService } from 'src/app/services/database';
+import { DatabaseService, Guest } from 'src/app/services/database';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -108,6 +108,17 @@ export class HomePage implements AfterViewInit, OnDestroy {
   currentView:'main' | 'guestsHome' | 'guestsData' | 'guestsExit' |'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera'= 'main';
 
   setView(view: 'main' | 'guestsHome' | 'guestsData' | 'guestsExit' | 'utenti3'| 'startup' | 'fornitori') {
+    if (view === 'guestsData') { 
+      this.guestName = '';
+      this.selectedReason = '';
+      this.signatureImage = null;
+      
+      // Se avevi un metodo per pulire il canvas della firma, chiamalo qui
+      // this.clearSignature(); 
+    }
+    if (view == 'guestsExit'){
+      this.activeGuests$ = this.dbService.getActiveGuests();
+    }
     this.currentView = view;
   }
 
@@ -369,17 +380,30 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.signatureImage = null;
   }
 
-  acceptAndSign() {
-    // Salva la firma come immagine base64
-    if (this.signaturePadElement) {
-      this.signatureImage = this.signaturePadElement.toDataURL();
-    }
-    console.log('Firma salvata:', this.signatureImage);
-    console.log('Dati:', this.guestName, this.selectedReason);
-    
-    // Chiudi modale e procedi
-    this.closePrivacyModal();
-    // Qui puoi aggiungere la logica per salvare tutto nel database o cambiare vista
+async acceptAndSign() {
+  if (this.signaturePadElement) {
+    this.signatureImage = this.signaturePadElement.toDataURL(); // Ottieni Base64
   }
+  
+  const newGuest: Guest = {
+    // id: this.dbService.generateId(), // Genera un ID unico per l'ospite
+    name: this.guestName,
+    reason: this.selectedReason,
+    entryTime: new Date().toISOString(),
+    status: 'IN',
+    signatureUrl: this.signatureImage || '' // <--- SALVA LA FIRMA QUI
+  };
+
+  try {
+    const docRef = await this.dbService.checkInGuest(newGuest); // Usa il metodo aggiornato
+    console.log('Salvato su Firebase!');
+    console.log('ID Generato da Firestore:', docRef.id);
+    // ... Reset e chiudi ...
+    this.closePrivacyModal();
+    this.setView('main');
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 }

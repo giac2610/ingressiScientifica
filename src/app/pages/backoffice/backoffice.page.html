@@ -1,0 +1,83 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Backoffice Scientifica</ion-title>
+  </ion-toolbar>
+  
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="selectedSegment">
+      <ion-segment-button value="guests">
+        <ion-icon name="people-outline"></ion-icon>
+        <ion-label>Ospiti in Sede</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="startups">
+        <ion-icon name="business-outline"></ion-icon>
+        <ion-label>Gestione Startup</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div *ngIf="selectedSegment === 'guests'">
+    <h2 class="section-title">Ospiti Attualmente Presenti</h2>
+    
+    <ion-list>
+      <ion-item *ngFor="let guest of activeGuests$ | async">
+        <ion-label>
+          <h2>{{ guest.name }}</h2>
+          <p>Entrato: {{ guest.entryTime | date:'HH:mm' }}</p>
+          <p>Motivo: {{ guest.reason }}</p>
+        </ion-label>
+        
+        <ion-badge slot="end" color="success">IN</ion-badge>
+        
+        <ion-button slot="end" fill="outline" color="warning" (click)="checkOut(guest.id!)">
+          <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      <ion-item *ngIf="(activeGuests$ | async)?.length === 0">
+        <ion-label class="ion-text-center">
+          <p>Nessun ospite presente al momento.</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <div *ngIf="selectedSegment === 'startups'">
+    
+    <ion-card>
+      <ion-card-content>
+        <h3>Aggiungi Nuova Startup</h3>
+        <ion-item>
+          <ion-input label="Nome Startup" labelPlacement="floating" [(ngModel)]="newStartupName"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input label="Descrizione (Opzionale)" labelPlacement="floating" [(ngModel)]="newStartupDesc"></ion-input>
+        </ion-item>
+        <br>
+        <ion-button expand="block" (click)="addStartup()" [disabled]="!newStartupName">
+          Salva Startup
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <h3 class="ion-margin-top">Startup Registrate</h3>
+    <ion-list>
+      <ion-item *ngFor="let startup of startups$ | async">
+        <ion-avatar slot="start">
+          <div class="letter-avatar">{{ startup.name.charAt(0) }}</div>
+        </ion-avatar>
+        <ion-label>
+          <h2>{{ startup.name }}</h2>
+          <!-- #TODO LOGO INPUT DA INSERIRE -->
+        </ion-label>
+        <ion-button slot="end" fill="clear" color="danger" (click)="deleteStartup(startup.id!)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
+  </div>
+
+</ion-content>
