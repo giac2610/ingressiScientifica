@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-
+import { HttpClient } from '@angular/common/http';
 // IMPORTA TUTTO DA @angular/fire/firestore
 // Questo assicura che le funzioni (collection, addDoc) siano compatibili con l'oggetto Firestore iniettato
 import { 
@@ -49,6 +49,10 @@ export interface Employee {
 export class DatabaseService {
   // Inietta l'istanza Firestore di Angular
   private firestore = inject(Firestore);
+  private http = inject(HttpClient);
+  
+  // URL del Google Apps Script per logging su Google Sheets
+  private googleStartupScriptUrl = 'https://script.google.com/macros/s/AKfycby6IM_hyL-AjcfUkXAsjRW5DONEr6cDDC2zXKr0FcuuEJ6zx_TmgZuJtvJk4Ciyhooa/exec'; // Sostituisci con il tuo URL
 
   constructor() { }
 
@@ -131,6 +135,33 @@ export class DatabaseService {
     });
   }
 
+  logEmployeeActionToSheet(employee: Employee, startupName: string, action: 'INGRESSO' | 'USCITA') {
+    
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('it-IT'); // Es. 28/11/2025
+    const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); // Es. 09:30
+
+    // Payload semplificato per il nuovo script
+    const sheetPayload = {
+      targetSheet: 'Ingressi Startup',
+      action: action, // Diciamo allo script cosa fare
+      data: {
+        Data: dateStr,
+        Dipendente: employee.name,
+        Ruolo: employee.role,
+        Azienda: startupName,
+        Ora: timeStr // Questa sarà usata come Ingresso o Uscita a seconda dell'action
+      }
+    };
+
+    // Invio
+    this.http.post(this.googleStartupScriptUrl, JSON.stringify(sheetPayload), {
+      headers: { 'Content-Type': 'text/plain' }
+    }).subscribe({
+      next: () => console.log(`Log ${action} inviato`),
+      error: (e) => console.error('Errore log sheet', e)
+    });
+  }
 async removeEmployeeFromStartup(startupId: string, employee: Employee) {
     const startupRef = doc(this.firestore, 'startups', startupId);
     

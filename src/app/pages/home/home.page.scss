@@ -308,3 +308,71 @@ ion-content {
   font-size: 1.75em;
   z-index: 11;
 }
+
+/* Stile Card Startup (adattato per background dinamico) */
+.startup-card {
+  height: 180px; /* Altezza fissa per uniformità */
+  width: 100%;
+  margin: 0;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.9); /* Sfondo base bianco semitrasparente */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+/* Stile "Badge" Dipendente */
+.employee-badge {
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 100%;
+
+  /* Effetto quando è PRESENTE */
+  &.is-present {
+    background: #e8f5e9; /* Verde chiaro */
+    border-color: #c8e6c9;
+    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.2);
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .emp-avatar {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 10px;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  .emp-info {
+    strong {
+      display: block;
+      color: #333;
+      font-size: 0.95rem;
+    }
+    small {
+      color: #666;
+      font-size: 0.8rem;
+    }
+  }
+}

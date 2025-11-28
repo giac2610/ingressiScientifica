@@ -1,14 +1,14 @@
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 } from '@angular/core';
-import { IonContent,IonSelect, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
+import { IonContent, IonSelect, ToastController, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonAvatar, IonBadge, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DatabaseService, Guest } from 'src/app/services/database';
-import { BehaviorSubject, combineLatest, map } from 'rxjs';
+import { DatabaseService, Guest, Startup, Employee } from 'src/app/services/database';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonList, IonLabel, IonFooter, FormsModule, IonButtons, IonTitle, IonHeader, IonCol, IonToolbar, IonModal, IonIcon, IonItem, IonSelect, IonButton, IonSelectOption, IonCardHeader, IonInput, IonCardContent, IonCardTitle, IonCard, IonGrid, IonRow, IonContent, CommonModule, IonSearchbar],
+  imports: [IonList, IonLabel, IonFooter, FormsModule, IonButtons, IonTitle, IonHeader, IonCol, IonToolbar, IonModal, IonIcon, IonItem, IonSelect, IonButton, IonSelectOption, IonCardHeader, IonInput, IonCardContent, IonCardTitle, IonCard, IonGrid, IonRow, IonContent, CommonModule, IonSearchbar, IonAvatar, IonBadge],
 })
 
 export class HomePage implements AfterViewInit, OnDestroy {
@@ -106,9 +106,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
   `;
 
-  currentView:'main' | 'guestsHome' | 'guestsData' | 'guestsExit' |'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera' | 'startupChoice' | 'startupAccess'| 'startupExit'  = 'main';
+  currentView:'main' | 'guestsHome' | 'guestsData' | 'startupEmployees' |'guestsExit' |'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera' | 'startupChoice' | 'startupAccess'| 'startupExit'  = 'main';
 
-  setView(view: 'main' | 'guestsHome' | 'guestsData' | 'guestsExit' | 'utenti3'| 'startup' | 'fornitori' | 'startupChoice' | 'startupAccess'| 'startupExit'  ) {
+  setView(view: 'main' | 'guestsHome' | 'guestsData' | 'guestsExit' | 'startupEmployees' |  'utenti3'| 'startup' | 'fornitori' | 'startupChoice' | 'startupAccess'| 'startupExit'  ) {
     if (view === 'guestsData') { 
       this.guestName = '';
       this.selectedReason = '';
@@ -127,13 +127,91 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.currentView = view;
   }
 
-  constructor(private renderer: Renderer2, private dbService: DatabaseService) {
+  constructor(private renderer: Renderer2, private dbService: DatabaseService, private toastController: ToastController) {
     
   }
 
   activeGuests$ = this.dbService.getActiveGuests();
   searchTerm$= new BehaviorSubject<string>('');
+  startup$:Observable<Startup[]> = this.dbService.getStartups();
+  selectedStartup: Startup | null = null;
+  employeeSearchTerm: string = ''; // Variabile per la ricerca dipendenti
 
+  selectStartup(startup: Startup) {
+    this.selectedStartup = startup;
+    this.setView('startupEmployees')
+  }
+
+  // 2. GESTIONE INGRESSO/USCITA DIPENDENTE
+  // Cerca se il dipendente è già nella lista degli ospiti attivi
+  getActiveEntry(employee: Employee, activeGuests: Guest[]): Guest | undefined {
+    // Cerchiamo una corrispondenza per Nome e Azienda (usiamo 'reason' per salvare il nome azienda)
+    return activeGuests.find(g => 
+      g.name === employee.name && 
+      (g.reason === this.selectedStartup?.name || g.reason === 'Dipendente')
+    );
+  }
+
+// home.page.ts
+  handleEmployeeSearch(event: any) {
+    this.employeeSearchTerm = event.detail.value || '';
+  }
+
+  async toggleEmployeeEntry(employee: Employee, activeGuests: Guest[]) {
+    const existingEntry = this.getActiveEntry(employee, activeGuests);
+    const startupName = this.selectedStartup?.name || 'Sconosciuta';
+    
+    let message = '';
+    let color = '';
+
+    try {
+      if (existingEntry && existingEntry.id) {
+        // --- USCITA ---
+        await this.dbService.checkOutGuest(existingEntry.id);
+        
+        // >> LOGGA L'USCITA SU GOOGLE SHEET <<
+        this.dbService.logEmployeeActionToSheet(employee, startupName, 'USCITA');
+
+        message = `Arrivederci ${employee.name}, uscita registrata.`;
+        color = 'warning'; 
+      } else {
+        // --- INGRESSO ---
+        const newGuest: Guest = {
+          name: employee.name,
+          reason: startupName, // Usiamo il nome startup come "motivo"
+          entryTime: new Date().toISOString(),
+          status: 'IN',
+          signatureUrl: employee.imageUrl || ''
+        };
+        await this.dbService.checkInGuest(newGuest);
+
+        // >> LOGGA L'INGRESSO SU GOOGLE SHEET <<
+        this.dbService.logEmployeeActionToSheet(employee, startupName, 'INGRESSO');
+
+        message = `Benvenuto ${employee.name}, ingresso registrato!`;
+        color = 'success';
+      }
+
+      // Mostra Toast e torna indietro (il tuo codice esistente)
+      const toast = await this.toastController.create({
+        message: message,
+        duration: 2000,
+        color: color,
+        position: 'top',
+        // icon...
+      });
+      await toast.present();
+
+      setTimeout(() => {
+        this.setView('main'); 
+      }, 1000);
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // 3. FILTRO RICERCA OSPITI
   filteredGuests$ = combineLatest([
     this.dbService.getActiveGuests(), // La tua lista originale dal service
     this.searchTerm$                  // Il testo digitato

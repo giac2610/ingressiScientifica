@@ -30,28 +30,95 @@
     </ion-grid>
   </div>
   <!-- STARTUP -->
-  <div class="menu-wrapper" [class.active]="currentView === 'startup'">
+<div class="menu-wrapper" [class.active]="currentView === 'startup'">
     <ion-grid class="center-grid">
-      <ion-row>
-        <ion-card (click)="setViewStartup('startupChoice')" style="--background: url('https://scientifica.vc/wp-content/uploads/2025/06/exolab_V02.png') no-repeat; background-size: contain; background-position: center; padding: 10px; background-origin: content-box;"></ion-card>
-        <ion-card (click)="setViewStartup('startupChoice')"style="--background: url('https://scientifica.vc/wp-content/uploads/2025/06/Loto_V02.png') no-repeat; background-size: contain; background-position: center; padding: 10px; background-origin: content-box;"></ion-card>
-      </ion-row>
-      <ion-row>
-        <ion-card (click)="setViewStartup('startupChoice')"style="--background: url('https://scientifica.vc/wp-content/uploads/2025/06/Libera_V02.png') no-repeat; background-size: contain; background-position: center; padding: 10px; background-origin: content-box;"></ion-card>
+      
+      <ion-row style="justify-content: center;">
+        
+        @for (s of startup$ | async; track s.id) {
+          <ion-col size="6" size-md="6">
+            
+            <ion-card 
+              (click)="selectStartup(s)" 
+              class="startup-card"
+              [style.--background]="s.logoUrl ? 'url(' + s.logoUrl + ') no-repeat center/contain' : 'rgba(255,255,255,0.8)'"
+              style="background-origin: content-box; padding: 20px;">
+              
+              <ion-card-content *ngIf="!s.logoUrl" style="color: #333; font-weight: bold; font-size: 1.5em;">
+                {{ s.name }}
+              </ion-card-content>
+            
+            </ion-card>
+          </ion-col>
+        } @empty {
+          <p style="color: white;">Caricamento startup...</p>
+        }
+
       </ion-row>
     </ion-grid>
   </div>
-    <div class="menu-wrapper" [class.active]="currentView === 'startupChoice'">
-    <ion-grid class="center-grid">
-      <ion-row>
-        <ion-card (click)="setView('startupAccess')">
-          Accesso
-        </ion-card>
-        <ion-card (click)="setView('startupExit')">
-          Uscita
-        </ion-card>
-      </ion-row>
-    </ion-grid>
+
+  <div class="menu-wrapper" [class.active]="currentView === 'startupEmployees'">
+    <ion-card class="input-card" style="max-width: 700px;">
+      
+      <ion-card-header>
+        <ion-card-title>
+          {{ selectedStartup?.name }} - Team
+        </ion-card-title>
+        <ion-searchbar 
+          placeholder="Cerca collega..." 
+          animated="true"
+          debounce="300"
+          (ionInput)="handleEmployeeSearch($event)">
+        </ion-searchbar>
+      </ion-card-header>
+
+      <ion-card-content>
+        
+        <ng-container *ngIf="activeGuests$ | async as activeGuests">
+          
+          <ion-grid>
+            <ion-row>
+              @for (emp of selectedStartup?.employees; track emp.name) {
+                <ion-col size="6" size-sm="4">
+                  
+                  <div 
+                    class="employee-badge" 
+                    [class.is-present]="getActiveEntry(emp, activeGuests)"
+                    (click)="toggleEmployeeEntry(emp, activeGuests)">
+                    
+                    <ion-avatar class="emp-avatar">
+                      <img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+                    </ion-avatar>
+                    
+                    <div class="emp-info">
+                      <strong>{{ emp.name }}</strong>
+                      <small>{{ emp.role }}</small>
+                    </div>
+
+                    <ion-badge [color]="getActiveEntry(emp, activeGuests) ? 'success' : 'medium'" style="margin-top: 5px;">
+                      {{ getActiveEntry(emp, activeGuests) ? 'PRESENTE' : 'ENTRA' }}
+                    </ion-badge>
+
+                  </div>
+
+                </ion-col>
+              } @empty {
+                <ion-col>
+                  <p>Nessun dipendente registrato per questa azienda.</p>
+                </ion-col>
+              }
+            </ion-row>
+          </ion-grid>
+
+        </ng-container>
+
+        <ion-button fill="clear" (click)="setView('startup')" color="medium" expand="block">
+          Torna alle Startup
+        </ion-button>
+
+      </ion-card-content>
+    </ion-card>
   </div>
   <!-- GUESTS -->
   <div class="menu-wrapper" [class.active]="currentView === 'guestsHome'">
@@ -142,8 +209,6 @@
         }
       </ion-list>
     </ion-content>
-    
-    <ion-button fill="clear" (click)="setView('main')">Indietro</ion-button>
   </ion-card>
 </div>
   <!-- PRIVACY MODAL -->
