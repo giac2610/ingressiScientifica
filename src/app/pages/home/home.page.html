@@ -31,12 +31,14 @@
   </div>
   <!-- STARTUP -->
 <div class="menu-wrapper" [class.active]="currentView === 'startup'">
+  
+  <div class="vertical-scroll-container">
     <ion-grid class="center-grid">
       
-      <ion-row style="justify-content: center;">
+      <ion-row class="startup-row">
         
         @for (s of startup$ | async; track s.id) {
-          <ion-col size="6" size-md="6">
+          <ion-col size="6">
             
             <ion-card 
               (click)="selectStartup(s)" 
@@ -44,19 +46,23 @@
               [style.--background]="s.logoUrl ? 'url(' + s.logoUrl + ') no-repeat center/contain' : 'rgba(255,255,255,0.8)'"
               style="background-origin: content-box; padding: 20px;">
               
-              <ion-card-content *ngIf="!s.logoUrl" style="color: #333; font-weight: bold; font-size: 1.5em;">
+              <ion-card-content *ngIf="!s.logoUrl" style="color: #333; font-weight: bold; font-size: 1.2em;">
                 {{ s.name }}
               </ion-card-content>
             
             </ion-card>
           </ion-col>
         } @empty {
-          <p style="color: white;">Caricamento startup...</p>
+          <ion-col size="12">
+            <p style="color: white;">Nessuna startup trovata.</p>
+          </ion-col>
         }
-
       </ion-row>
+
     </ion-grid>
   </div>
+
+</div>
 
   <div class="menu-wrapper" [class.active]="currentView === 'startupEmployees'">
     <ion-card class="input-card" style="max-width: 700px;">

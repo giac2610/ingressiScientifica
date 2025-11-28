@@ -138,10 +138,10 @@ ion-content {
   max-height: 60px;
 }
 
-.center-grid{
-  width: auto;
+// .center-grid{
+//   width: auto;
   
-}
+// }
 
 /* Stile della Card Form */
 .form-card {
@@ -309,25 +309,95 @@ ion-content {
   z-index: 11;
 }
 
-/* Stile Card Startup (adattato per background dinamico) */
-.startup-card {
-  height: 180px; /* Altezza fissa per uniformità */
+/* --- CONTENITORE SCROLL VERTICALE --- */
+.vertical-scroll-container {
+  /* Definisci un'altezza massima per attivare lo scroll */
+  max-height: 65vh; 
   width: 100%;
-  margin: 0;
+  max-width: 900px; /* Limita larghezza su schermi grandi */
+  
+  /* Abilita scroll verticale */
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  /* EFFETTO OROLOGIO / SFUMATURA */
+  /* Sfuma i bordi sopra e sotto per dare l'idea di continuità */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  
+  /* Padding per non tagliare le ombre delle card */
+  padding: 20px 10px;
+
+  /* Nascondere la Scrollbar (Chrome, Safari, Opera) */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Nascondere la Scrollbar (Firefox, IE, Edge) */
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
+}
+
+/* Assicurati che le card abbiano uno spazio tra loro */
+/* --- CONTENITORE SCROLL VERTICALE (Effetto Orologio) --- */
+.vertical-scroll-container {
+  max-height: 60vh; /* Altezza massima visibile */
+  width: 100%;
+  overflow-y: auto;   /* Abilita scroll verticale */
+  overflow-x: hidden; /* Disabilita scroll orizzontale */
+  
+  /* Maschera di sfumatura sopra e sotto */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+  
+  padding: 20px 0; /* Spazio per non tagliare le ombre */
+
+  /* Nascondi scrollbar */
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
+}
+
+/* --- FIX PER LA GRIGLIA A 2 COLONNE --- */
+.startup-row {
+  /* FORZA IL 'CAPO' */
+  flex-wrap: wrap !important; 
+  
+  /* RIMUOVI GAP CHE ROMPE LA GRIGLIA (Ionic usa padding nelle col) */
+  gap: 0 !important; 
+  
+  justify-content: flex-start !important; /* Allinea a sinistra/alto */
+  width: 100%;
+}
+
+.startup-row ion-col {
+  /* Assicura che le colonne abbiano spazio tra loro tramite padding */
+  padding: 8px; 
+  display: flex;
+  justify-content: center;
+}
+
+/* --- CARD --- */
+.startup-card {
+  height: 150px;
+  width: 100%; /* Si adatta alla colonna */
+  margin: 0;   /* Margine gestito dal padding della colonna */
+  
   border-radius: 20px;
   backdrop-filter: blur(10px);
-  background-color: rgba(255, 255, 255, 0.9); /* Sfondo base bianco semitrasparente */
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
-  cursor: pointer;
-  transition: transform 0.2s;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   
+  /* Per centrare il testo se non c'è logo */
   display: flex;
   align-items: center;
   justify-content: center;
-
-  &:active {
-    transform: scale(0.96);
-  }
+  text-align: center;
+}
+/* Modifica la grid per adattarsi */
+.center-grid {
+  width: 100%;
+  padding-bottom: 40px; /* Spazio extra in fondo per lo scroll */
 }
 
 /* Stile "Badge" Dipendente */
