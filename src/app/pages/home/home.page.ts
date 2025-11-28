@@ -106,9 +106,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
   `;
 
-  currentView:'main' | 'guestsHome' | 'guestsData' | 'guestsExit' |'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera'= 'main';
+  currentView:'main' | 'guestsHome' | 'guestsData' | 'guestsExit' |'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera' | 'startupChoice' | 'startupAccess'| 'startupExit'  = 'main';
 
-  setView(view: 'main' | 'guestsHome' | 'guestsData' | 'guestsExit' | 'utenti3'| 'startup' | 'fornitori') {
+  setView(view: 'main' | 'guestsHome' | 'guestsData' | 'guestsExit' | 'utenti3'| 'startup' | 'fornitori' | 'startupChoice' | 'startupAccess'| 'startupExit'  ) {
     if (view === 'guestsData') { 
       this.guestName = '';
       this.selectedReason = '';
@@ -123,7 +123,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.currentView = view;
   }
 
-  setViewStartup(view: 'exolab' | 'loto' | 'libera') {
+  setViewStartup(view: 'startupChoice'  ) {
     this.currentView = view;
   }
 

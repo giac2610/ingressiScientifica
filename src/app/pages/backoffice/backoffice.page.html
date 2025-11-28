@@ -44,8 +44,7 @@
       </ion-item>
     </ion-list>
   </div>
-
-<div *ngIf="selectedSegment === 'startups'">
+  <div *ngIf="selectedSegment === 'startups'">
     
     <ion-grid>
       <ion-row>
@@ -82,70 +81,70 @@
           </ion-card>
         </ion-col>
 
-<ion-col size="12" size-md="6">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>2. Gestisci Team</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      
-      <ion-item class="ion-margin-bottom">
-        <ion-select label="Seleziona Startup" labelPlacement="floating" [(ngModel)]="selectedStartupId">
-          <ion-select-option *ngFor="let s of startups$ | async" [value]="s.id">
-            {{ s.name }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
+        <ion-col size="12" size-md="6">
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>2. Gestisci Team</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              
+              <ion-item class="ion-margin-bottom">
+                <ion-select label="Seleziona Startup" labelPlacement="floating" [(ngModel)]="selectedStartupId">
+                  <ion-select-option *ngFor="let s of startups$ | async" [value]="s.id">
+                    {{ s.name }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
 
-      <div *ngIf="selectedStartupId">
-        
-        <div style="background: #f4f5f8; padding: 10px; border-radius: 8px;">
-          <ion-item lines="none" style="--background:transparent">
-            <ion-input label="Nome Dipendente" labelPlacement="stacked" [(ngModel)]="newEmpName"></ion-input>
-          </ion-item>
-          <ion-item lines="none" style="--background:transparent">
-            <ion-input label="Ruolo" labelPlacement="stacked" [(ngModel)]="newEmpRole"></ion-input>
-          </ion-item>
-          
-          <div class="drop-zone small" 
-               (drop)="onDrop($event, 'employee')" 
-               (dragover)="onDragOver($event)" 
-               (dragleave)="onDragLeave($event)">
-            <p *ngIf="!newEmpImage" style="margin:0; color:#666">Trascina foto qui</p>
-            <img *ngIf="newEmpImage" [src]="newEmpImage" style="height:50px; border-radius:50%">
-          </div>
+              <div *ngIf="selectedStartupId">
+                
+                <div style="background: #f4f5f8; padding: 10px; border-radius: 8px;">
+                  <ion-item lines="none" style="--background:transparent">
+                    <ion-input label="Nome Dipendente" labelPlacement="stacked" [(ngModel)]="newEmpName"></ion-input>
+                  </ion-item>
+                  <ion-item lines="none" style="--background:transparent">
+                    <ion-input label="Ruolo" labelPlacement="stacked" [(ngModel)]="newEmpRole"></ion-input>
+                  </ion-item>
+                  
+                  <div class="drop-zone small" 
+                      (drop)="onDrop($event, 'employee')" 
+                      (dragover)="onDragOver($event)" 
+                      (dragleave)="onDragLeave($event)">
+                    <p *ngIf="!newEmpImage" style="margin:0; color:#666">Trascina foto qui</p>
+                    <img *ngIf="newEmpImage" [src]="newEmpImage" style="height:50px; border-radius:50%">
+                  </div>
 
-          <ion-button expand="block" size="small" class="ion-margin-top" (click)="addEmployee()" [disabled]="!newEmpName">
-            <ion-icon slot="start" name="person-add-outline"></ion-icon>
-            Aggiungi
-          </ion-button>
-        </div>
+                  <ion-button expand="block" size="small" class="ion-margin-top" (click)="addEmployee()" [disabled]="!newEmpName">
+                    <ion-icon slot="start" name="person-add-outline"></ion-icon>
+                    Aggiungi
+                  </ion-button>
+                </div>
 
-        <h5 class="ion-margin-top">Team Attuale:</h5>
-        <ng-container *ngFor="let s of startups$ | async">
-          <ion-list *ngIf="s.id === selectedStartupId">
-            <ion-item *ngFor="let emp of s.employees">
-              <ion-avatar slot="start">
-                <img [src]="emp.imageUrl || 'https://via.placeholder.com/40'">
-              </ion-avatar>
-              <ion-label>
-                <h3>{{ emp.name }}</h3>
-                <p>{{ emp.role }}</p>
-              </ion-label>
-              <ion-button slot="end" fill="clear" color="danger" (click)="deleteEmployee(emp)">
-                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-              </ion-button>
-            </ion-item>
-            <div *ngIf="!s.employees.length" class="ion-text-center">
-              <small>Nessun dipendente.</small>
-            </div>
-          </ion-list>
-        </ng-container>
+                <h5 class="ion-margin-top">Team Attuale:</h5>
+                <ng-container *ngFor="let s of startups$ | async">
+                  <ion-list *ngIf="s.id === selectedStartupId">
+                    <ion-item *ngFor="let emp of s.employees">
+                      <ion-avatar slot="start">
+                        <img [src]="emp.imageUrl || 'https://via.placeholder.com/40'">
+                      </ion-avatar>
+                      <ion-label>
+                        <h3>{{ emp.name }}</h3>
+                        <p>{{ emp.role }}</p>
+                      </ion-label>
+                      <ion-button slot="end" fill="clear" color="danger" (click)="deleteEmployee(emp)">
+                        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                      </ion-button>
+                    </ion-item>
+                    <div *ngIf="!s.employees.length" class="ion-text-center">
+                      <small>Nessun dipendente.</small>
+                    </div>
+                  </ion-list>
+                </ng-container>
 
-      </div>
-    </ion-card-content>
-  </ion-card>
-</ion-col>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
 
       </ion-row>
 
