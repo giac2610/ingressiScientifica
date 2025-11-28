@@ -1,13 +1,14 @@
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 } from '@angular/core';
-import { IonContent,IonSelect, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonLabel, IonList } from '@ionic/angular/standalone';
+import { IonContent,IonSelect, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatabaseService, Guest } from 'src/app/services/database';
+import { BehaviorSubject, combineLatest, map } from 'rxjs';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonList, IonLabel, IonFooter, FormsModule, IonButtons, IonTitle, IonHeader, IonCol, IonToolbar, IonModal, IonIcon, IonItem, IonSelect, IonButton, IonSelectOption, IonCardHeader, IonInput, IonCardContent, IonCardTitle, IonCard, IonGrid, IonRow, IonContent, CommonModule],
+  imports: [IonList, IonLabel, IonFooter, FormsModule, IonButtons, IonTitle, IonHeader, IonCol, IonToolbar, IonModal, IonIcon, IonItem, IonSelect, IonButton, IonSelectOption, IonCardHeader, IonInput, IonCardContent, IonCardTitle, IonCard, IonGrid, IonRow, IonContent, CommonModule, IonSearchbar],
 })
 
 export class HomePage implements AfterViewInit, OnDestroy {
@@ -131,6 +132,22 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
   activeGuests$ = this.dbService.getActiveGuests();
+  searchTerm$= new BehaviorSubject<string>('');
+
+  filteredGuests$ = combineLatest([
+    this.dbService.getActiveGuests(), // La tua lista originale dal service
+    this.searchTerm$                  // Il testo digitato
+  ]).pipe(
+    map(([guests, term]) => {
+      // Se non c'è testo, restituisci tutto
+      if (!term.trim()) return guests;
+      
+      // Altrimenti filtra per nome (case insensitive)
+      return guests.filter(guest => 
+        guest.name.toLowerCase().includes(term.toLowerCase())
+      );
+    })
+  );
 
   doCheckout(id: string) {
     this.dbService.checkOutGuest(id);
@@ -147,6 +164,10 @@ export class HomePage implements AfterViewInit, OnDestroy {
     if (this.resizeListener) {
       window.removeEventListener("resize", this.resizeListener);
     }
+  }
+
+  handleSearch(event: any) {
+    this.searchTerm$.next(event.detail.value || '');
   }
 
   private createShader(type: number, source: string): WebGLShader | null {

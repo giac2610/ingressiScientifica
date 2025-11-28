@@ -94,37 +94,46 @@
   </div>
 
   <!-- GUEST USCITA -->
-   <div class="menu-wrapper" [class.active]="currentView === 'guestsExit'">
-    <ion-card class="input-card">
-      <ion-card-header>
-        <ion-card-title>Ospiti Presenti</ion-card-title>
-        <!-- <ion-button size="small" (click)="downloadReport()">Scarica Excel</ion-button> -->
-      </ion-card-header>
-      <ion-content style="height: 300px">
-        <ion-list>
-          @for (guest of activeGuests$ | async; track guest.id) {
-            <ion-item>
-              <ion-label>
-                <h2>{{ guest.name }}</h2>
-                <p>{{ guest.entryTime | date:'shortTime' }} - {{ guest.reason }}</p>
-              </ion-label>
-              
-              <ion-button slot="end" color="warning" (click)="doCheckout(guest.id!)">
-                Uscita
-              </ion-button>
-            </ion-item>
-          } @empty {
-            <ion-item>
-              <ion-label class="ion-text-center">
-                <p>Nessun ospite presente.</p>
-              </ion-label>
-            </ion-item>
-          }
-        </ion-list>
-      </ion-content>
-      <ion-button fill="clear" (click)="setView('main')">Indietro</ion-button>
-    </ion-card>
-  </div>
+<div class="menu-wrapper" [class.active]="currentView === 'guestsExit'">
+  <ion-card class="input-card">
+    <ion-card-header>
+      <ion-card-title>Ospiti Presenti</ion-card-title>
+      
+      <ion-searchbar 
+        placeholder="Cerca ospite..." 
+        animated="true"
+        debounce="300"
+        (ionInput)="handleSearch($event)">
+      </ion-searchbar>
+
+    </ion-card-header>
+
+    <ion-content style="height: 300px">
+      <ion-list>
+        @for (guest of filteredGuests$ | async; track guest.id) {
+          <ion-item>
+            <ion-label>
+              <h2>{{ guest.name }}</h2>
+              <p>{{ guest.entryTime | date:'shortTime' }} - {{ guest.reason }}</p>
+            </ion-label>
+            
+            <ion-button slot="end" color="warning" (click)="doCheckout(guest.id!)">
+              Uscita
+            </ion-button>
+          </ion-item>
+        } @empty {
+          <ion-item>
+            <ion-label class="ion-text-center">
+              <p>Nessun ospite trovato.</p>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    </ion-content>
+    
+    <ion-button fill="clear" (click)="setView('main')">Indietro</ion-button>
+  </ion-card>
+</div>
   <!-- PRIVACY MODAL -->
   <ion-modal [isOpen]="isPrivacyModalOpen" (didDismiss)="closePrivacyModal()" (didPresent)="onModalDidPresent()">
     <ng-template>

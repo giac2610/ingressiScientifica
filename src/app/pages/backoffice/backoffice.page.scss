@@ -15,3 +15,51 @@
   font-weight: bold;
   font-size: 1.2rem;
 }
+
+.drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  margin: 16px 0;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.drag-active {
+    background: #e3f2fd;
+    border-color: var(--ion-color-primary);
+    transform: scale(1.02);
+  }
+
+  .placeholder {
+    pointer-events: none; /* Lascia passare l'evento al div padre */
+    color: #888;
+    p { margin: 5px 0 0 0; font-size: 0.9em; }
+  }
+
+  .preview-img {
+    max-height: 100px;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    
+    &.circle {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+    }
+  }
+
+  /* Versione più piccola per dipendenti */
+  &.small {
+    padding: 10px;
+    min-height: 80px;
+  }
+}
