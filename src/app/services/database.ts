@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-// IMPORTA TUTTO DA @angular/fire/firestore
-// Questo assicura che le funzioni (collection, addDoc) siano compatibili con l'oggetto Firestore iniettato
+
 import { 
   Firestore, 
   collection, 
@@ -52,13 +51,11 @@ export class DatabaseService {
   private http = inject(HttpClient);
   
   // URL del Google Apps Script per logging su Google Sheets
-  private googleStartupScriptUrl = 'https://script.google.com/macros/s/AKfycby6IM_hyL-AjcfUkXAsjRW5DONEr6cDDC2zXKr0FcuuEJ6zx_TmgZuJtvJk4Ciyhooa/exec'; // Sostituisci con il tuo URL
+  private googleStartupScriptUrl = 'https://script.google.com/macros/s/AKfycby6IM_hyL-AjcfUkXAsjRW5DONEr6cDDC2zXKr0FcuuEJ6zx_TmgZuJtvJk4Ciyhooa/exec';
+  private googleGuestScriptUrl = 'https://docs.google.com/spreadsheets/d/1xQrtmJGT6INh8Gv6MLJrWrSZlaG7OWzJBBnb0UWSViA/edit?gid=0#gid=0'
 
   constructor() { }
 
-  // --- HELPER PRIVATO: Crea un Observable manualmente usando onSnapshot ---
-  // Usiamo questo approccio "manuale" invece di collectionData per evitare
-  // conflitti di versione o errori di tipo "Type does not match"
   private getCollectionData<T>(queryRef: any): Observable<T[]> {
     return new Observable((observer) => {
       const unsubscribe = onSnapshot(queryRef, 
@@ -71,7 +68,6 @@ export class DatabaseService {
         },
         (error: any) => observer.error(error)
       );
-      // Pulizia quando l'observable viene chiuso
       return () => unsubscribe();
     });
   }
@@ -81,7 +77,7 @@ export class DatabaseService {
   // ==========================================
 
   async checkInGuest(guest: Guest) {
-    // Ora 'collection' proviene da @angular/fire e accetta 'this.firestore'
+
     const guestsRef = collection(this.firestore, 'guests');
     return addDoc(guestsRef, {
       ...guest,
@@ -142,8 +138,13 @@ export class DatabaseService {
     const dateStr = now.toLocaleDateString('it-IT'); // Es. 28/11/2025
     const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); // Es. 09:30
 
+    // Ottieni "dicembre 2025"
+    let sheetName = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+    // Rendi la prima lettera maiuscola
+    sheetName = sheetName.charAt(0).toUpperCase() + sheetName.slice(1);
+
     const sheetPayload = {
-      targetSheet: 'Ingressi Startup',
+      targetSheet: sheetName, // Nome del foglio basato sulla data (es. 28-11-2025)
       action: action, // Diciamo allo script cosa fare
       data: {
         Data: dateStr,
@@ -161,6 +162,17 @@ export class DatabaseService {
       next: () => console.log(`Log ${action} inviato`),
       error: (e) => console.error('Errore log sheet', e)
     });
+  }
+
+  logGuestActionToSheet(guest: Guest, action: 'INGRESSO' | 'USCITA') {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('it-IT'); // Es. 28/11/2025
+    const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); // Es. 09:30
+
+    // Ottieni "dicembre 2025"
+    let sheetName = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+    // Rendi la prima lettera maiuscola
+    sheetName = sheetName.charAt(0).toUpperCase() + sheetName.slice(1);
   }
 
 async removeEmployeeFromStartup(startupId: string, employee: Employee) {
