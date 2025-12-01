@@ -116,7 +116,7 @@ export class DatabaseService {
   // GESTIONE STARTUP & DIPENDENTI
   // ==========================================
 
-  // 1. Aggiungi Startup (con logo opzionale)
+  // Aggiungi Startup
   async addStartup(startup: Startup) {
     const startupsRef = collection(this.firestore, 'startups');
     // Assicuriamoci che l'array employees sia inizializzato
@@ -126,7 +126,7 @@ export class DatabaseService {
     return addDoc(startupsRef, startup);
   }
 
-  // 2. Aggiungi Dipendente a una Startup esistente
+  // Aggiungi Dipendente a una Startup esistente
   async addEmployeeToStartup(startupId: string, employee: Employee) {
     const startupRef = doc(this.firestore, 'startups', startupId);
     // arrayUnion aggiunge l'elemento solo se non esiste già (evita duplicati esatti)
@@ -135,13 +135,13 @@ export class DatabaseService {
     });
   }
 
+  // logga l'azione di ingresso/uscita del dipendente su Google Sheets
   logEmployeeActionToSheet(employee: Employee, startupName: string, action: 'INGRESSO' | 'USCITA') {
     
     const now = new Date();
     const dateStr = now.toLocaleDateString('it-IT'); // Es. 28/11/2025
     const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); // Es. 09:30
 
-    // Payload semplificato per il nuovo script
     const sheetPayload = {
       targetSheet: 'Ingressi Startup',
       action: action, // Diciamo allo script cosa fare
@@ -162,6 +162,7 @@ export class DatabaseService {
       error: (e) => console.error('Errore log sheet', e)
     });
   }
+
 async removeEmployeeFromStartup(startupId: string, employee: Employee) {
     const startupRef = doc(this.firestore, 'startups', startupId);
     
@@ -170,8 +171,6 @@ async removeEmployeeFromStartup(startupId: string, employee: Employee) {
       employees: arrayRemove(employee)
     });
   }
-  // 3. Rimuovi Dipendente (Opzionale, serve logica più complessa per rimuovere da array, 
-  // per ora sovrascriviamo l'intero array se necessario, ma arrayRemove richiede l'oggetto esatto)
 
   getStartups(): Observable<Startup[]> {
     const startupsRef = collection(this.firestore, 'startups');
