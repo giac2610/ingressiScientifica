@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package com.scientifica.ingressi;
 
 import com.getcapacitor.BridgeActivity;
 
