@@ -13,6 +13,7 @@ import {
   orderBy,
   onSnapshot,
   arrayUnion,
+  getDoc,
   arrayRemove
 } from '@angular/fire/firestore'; 
 
@@ -40,6 +41,8 @@ export interface Employee {
   name: string;
   role?: string;
   imageUrl?: string;
+  status?: 'IN' | 'OUT';
+  lastEntryTime?: string;
 }
 
 @Injectable({
@@ -123,12 +126,11 @@ export class DatabaseService {
   }
 
   // Aggiungi Dipendente a una Startup esistente
+// IMPORTANTE: Quando aggiungi un dipendente, inizializzalo con status 'OUT'
   async addEmployeeToStartup(startupId: string, employee: Employee) {
     const startupRef = doc(this.firestore, 'startups', startupId);
-    // arrayUnion aggiunge l'elemento solo se non esiste già (evita duplicati esatti)
-    return updateDoc(startupRef, {
-      employees: arrayUnion(employee)
-    });
+    const newEmp = { ...employee, status: 'OUT' }; // Default OUT
+    return updateDoc(startupRef, { employees: arrayUnion(newEmp) });
   }
 
   // logga l'azione di ingresso/uscita del dipendente su Google Sheets
@@ -175,15 +177,23 @@ export class DatabaseService {
     sheetName = sheetName.charAt(0).toUpperCase() + sheetName.slice(1);
   }
 
-async removeEmployeeFromStartup(startupId: string, employee: Employee) {
-    const startupRef = doc(this.firestore, 'startups', startupId);
+  // async removeEmployeeFromStartup(startupId: string, employee: Employee) {
+  //   const startupRef = doc(this.firestore, 'startups', startupId);
     
-    // arrayRemove cerca l'oggetto identico nell'array e lo rimuove
-    return updateDoc(startupRef, {
-      employees: arrayRemove(employee)
-    });
-  }
+  //   // arrayRemove cerca l'oggetto identico nell'array e lo rimuove
+  //   return updateDoc(startupRef, {
+  //     employees: arrayRemove(employee)
+  //   });
+  // }
 
+  async removeEmployeeFromStartup(startupId: string, employeeName: string) {
+    const startupRef = doc(this.firestore, 'startups', startupId);
+    const snapshot = await getDoc(startupRef);
+    if (!snapshot.exists()) return;
+    const employees = (snapshot.data() as Startup).employees || [];
+    const updatedEmployees = employees.filter(e => e.name !== employeeName);
+    return updateDoc(startupRef, { employees: updatedEmployees });
+  }
   getStartups(): Observable<Startup[]> {
     const startupsRef = collection(this.firestore, 'startups');
     const q = query(startupsRef, orderBy('name', 'asc'));
@@ -193,5 +203,32 @@ async removeEmployeeFromStartup(startupId: string, employee: Employee) {
   deleteStartup(id: string) {
     const docRef = doc(this.firestore, 'startups', id);
     return deleteDoc(docRef);
+  }
+
+  // Aggiorna lo stato del dipendente DENTRO l'array della startup
+  async updateEmployeeStatus(startupId: string, employeeName: string, newStatus: 'IN' | 'OUT') {
+    const startupRef = doc(this.firestore, 'startups', startupId);
+    
+    // 1. Leggi il documento attuale
+    const snapshot = await getDoc(startupRef);
+    if (!snapshot.exists()) throw new Error("Startup non trovata");
+    
+    const startupData = snapshot.data() as Startup;
+    const employees = startupData.employees || [];
+
+    // 2. Trova e modifica il dipendente nell'array locale
+    const updatedEmployees = employees.map(emp => {
+      if (emp.name === employeeName) {
+        return { 
+          ...emp, 
+          status: newStatus,
+          lastEntryTime: new Date().toISOString() // Aggiorna timestamp
+        };
+      }
+      return emp;
+    });
+
+    // 3. Sovrascrivi l'array nel database
+    return updateDoc(startupRef, { employees: updatedEmployees });
   }
 }

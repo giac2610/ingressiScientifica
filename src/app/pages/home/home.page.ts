@@ -3,7 +3,7 @@ import { IonContent, IonSelect, ToastController, IonButton, IonSelectOption, Ion
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatabaseService, Guest, Startup, Employee } from 'src/app/services/database';
-import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -133,7 +133,16 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   activeGuests$ = this.dbService.getActiveGuests();
   searchTerm$= new BehaviorSubject<string>('');
-  startup$:Observable<Startup[]> = this.dbService.getStartups();
+  startup$:Observable<Startup[]> = this.dbService.getStartups().pipe(
+    tap(updatedStartups => {
+      if (this.selectedStartup) {
+        const found = updatedStartups.find(s => s.id === this.selectedStartup?.id);
+        if (found) {
+          this.selectedStartup = found;
+        }
+      }
+    })
+  );
   selectedStartup: Startup | null = null;
   employeeSearchTerm: string = ''; // Variabile per la ricerca dipendenti
 
@@ -157,60 +166,49 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.employeeSearchTerm = event.detail.value || '';
   }
 
-  async toggleEmployeeEntry(employee: Employee, activeGuests: Guest[]) {
-    const existingEntry = this.getActiveEntry(employee, activeGuests);
-    const startupName = this.selectedStartup?.name || 'Sconosciuta';
+async toggleEmployeeEntry(employee: Employee) {
+    if (!this.selectedStartup || !this.selectedStartup.id) return;
+
+    const startupId = this.selectedStartup.id;
+    const startupName = this.selectedStartup.name;
     
-    let message = '';
-    let color = '';
+    // Leggi stato attuale direttamente dall'oggetto (se manca è OUT)
+    const isCurrentlyIn = employee.status === 'IN';
+    
+    // Determina nuova azione
+    const newAction = isCurrentlyIn ? 'USCITA' : 'INGRESSO';
+    const newStatus = isCurrentlyIn ? 'OUT' : 'IN';
+    
+    // Messaggi UI
+    const message = isCurrentlyIn 
+      ? `Arrivederci ${employee.name}` 
+      : `Benvenuto ${employee.name}`;
+    const color = isCurrentlyIn ? 'warning' : 'success';
 
     try {
-      if (existingEntry && existingEntry.id) {
-        // --- USCITA ---
-        await this.dbService.checkOutGuest(existingEntry.id);
-        
-        // >> LOGGA L'USCITA SU GOOGLE SHEET <<
-        this.dbService.logEmployeeActionToSheet(employee, startupName, 'USCITA');
+      // A. Aggiorna DB (cambia lo stato nell'array)
+      await this.dbService.updateEmployeeStatus(startupId, employee.name, newStatus);
+      
+      // B. Invia Log a Google Sheet
+      this.dbService.logEmployeeActionToSheet(employee, startupName, newAction);
 
-        message = `Arrivederci ${employee.name}, uscita registrata.`;
-        color = 'warning'; 
-      } else {
-        // --- INGRESSO ---
-        const newGuest: Guest = {
-          name: employee.name,
-          reason: startupName, // Usiamo il nome startup come "motivo"
-          entryTime: new Date().toISOString(),
-          status: 'IN',
-          signatureUrl: employee.imageUrl || ''
-        };
-        await this.dbService.checkInGuest(newGuest);
+      // C. Feedback UI
+      this.showToast(message, color);
+      setTimeout(() => this.setView('startup'), 1000);
 
-        // >> LOGGA L'INGRESSO SU GOOGLE SHEET <<
-        this.dbService.logEmployeeActionToSheet(employee, startupName, 'INGRESSO');
-
-        message = `Benvenuto ${employee.name}, ingresso registrato!`;
-        color = 'success';
-      }
-
-      // Mostra Toast e torna indietro (il tuo codice esistente)
-      const toast = await this.toastController.create({
-        message: message,
-        duration: 2000,
-        color: color,
-        position: 'top',
-        // icon...
-      });
-      await toast.present();
-
-      setTimeout(() => {
-        this.setView('main'); 
-      }, 1000);
-
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
+      this.showToast('Errore aggiornamento', 'danger');
     }
   }
 
+  showToast(message: string, color: 'success' | 'warning' | 'danger') {
+    this.toastController.create({
+      message,
+      duration: 2000,
+      color
+    }).then(toast => toast.present());
+  }
   // 3. FILTRO RICERCA OSPITI
   filteredGuests$ = combineLatest([
     this.dbService.getActiveGuests(), // La tua lista originale dal service

@@ -145,7 +145,7 @@ async deleteEmployee(employee: Employee) {
     if (!confirmDelete) return;
 
     try {
-      await this.dbService.removeEmployeeFromStartup(this.selectedStartupId, employee);
+      await this.dbService.removeEmployeeFromStartup(this.selectedStartupId, employee.name);
       console.log('Dipendente rimosso');
     } catch (error) {
       console.error('Errore rimozione:', error);

@@ -1,13 +1,15 @@
 <ion-content [fullscreen]="true" class="transparent-bg">
     
   <canvas #backgroundCanvas class="background-canvas"></canvas>
-  
+
+  <!-- HEADER -->
   <div class="box-header" (click)="setView('main')">
     <div class="logo" data-maxheight="60">
       <img fetchpriority="high" decoding="async" src="https://scientifica.vc/wp-content/uploads/2025/05/Favicon-Scientifica_Positive.png" alt="logo" class="img-responsive" data-cmp-info="10">
     </div>
   
   </div>
+
   <!-- MAIN MENU -->
   <div class="menu-wrapper" [class.active]="currentView === 'main'">
     <ion-grid class="center-grid">
@@ -29,44 +31,39 @@
       </ion-row>
     </ion-grid>
   </div>
-  <!-- STARTUP -->
-<div class="menu-wrapper" [class.active]="currentView === 'startup'">
-  
-  <div class="vertical-scroll-container">
-    <ion-grid class="center-grid">
-      
-      <ion-row class="startup-row">
-        
-        @for (s of startup$ | async; track s.id) {
-          <ion-col size="6">
-            
-            <ion-card 
-              (click)="selectStartup(s)" 
-              class="startup-card"
-              [style.--background]="s.logoUrl ? 'url(' + s.logoUrl + ') no-repeat center/contain' : 'rgba(255,255,255,0.8)'"
-              style="background-origin: content-box; padding: 20px;">
-              
-              <ion-card-content *ngIf="!s.logoUrl" style="color: #333; font-weight: bold; font-size: 1.2em;">
-                {{ s.name }}
-              </ion-card-content>
-            
-            </ion-card>
-          </ion-col>
-        } @empty {
-          <ion-col size="12">
-            <p style="color: white;">Nessuna startup trovata.</p>
-          </ion-col>
-        }
-      </ion-row>
 
-    </ion-grid>
+  <!-- STARTUP -->
+  <div class="menu-wrapper" [class.active]="currentView === 'startup'">
+    <div class="vertical-scroll-container">
+      <ion-grid class="center-grid">
+        <ion-row class="startup-row">
+          @for (s of startup$ | async; track s.id) {
+            <ion-col size="6">
+              
+              <ion-card 
+                (click)="selectStartup(s)" 
+                class="startup-card"
+                [style.--background]="s.logoUrl ? 'url(' + s.logoUrl + ') no-repeat center/contain' : 'rgba(255,255,255,0.8)'"
+                style="background-origin: content-box; padding: 20px;">
+                
+                <ion-card-content *ngIf="!s.logoUrl" style="color: #333; font-weight: bold; font-size: 1.2em;">
+                  {{ s.name }}
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          } @empty {
+            <ion-col size="12">
+              <p style="color: white;">Nessuna startup trovata.</p>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    </div>
   </div>
 
-</div>
-
+<!-- STARTUP EMPLOYEES -->
   <div class="menu-wrapper" [class.active]="currentView === 'startupEmployees'">
     <ion-card class="input-card" style="max-width: 700px;">
-      
       <ion-card-header>
         <ion-card-title>
           {{ selectedStartup?.name }} - Team
@@ -80,18 +77,15 @@
       </ion-card-header>
 
       <ion-card-content>
-        
         <ng-container *ngIf="activeGuests$ | async as activeGuests">
-          
           <ion-grid>
             <ion-row>
               @for (emp of selectedStartup?.employees; track emp.name) {
                 <ion-col size="6" size-sm="4">
-                  
                   <div 
                     class="employee-badge" 
-                    [class.is-present]="getActiveEntry(emp, activeGuests)"
-                    (click)="toggleEmployeeEntry(emp, activeGuests)">
+                    [class.is-present]="emp.status === 'IN'"
+                    (click)="toggleEmployeeEntry(emp)">
                     
                     <ion-avatar class="emp-avatar">
                       <img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
@@ -102,8 +96,8 @@
                       <small>{{ emp.role }}</small>
                     </div>
 
-                    <ion-badge [color]="getActiveEntry(emp, activeGuests) ? 'success' : 'medium'" style="margin-top: 5px;">
-                      {{ getActiveEntry(emp, activeGuests) ? 'PRESENTE' : 'ENTRA' }}
+                    <ion-badge [color]= "emp.status === 'IN' ? 'success' : 'medium'" style="margin-top: 5px;">
+                      {{ emp.status === 'IN'  ? 'PRESENTE' : 'ENTRA' }}
                     </ion-badge>
 
                   </div>
@@ -126,6 +120,7 @@
       </ion-card-content>
     </ion-card>
   </div>
+
   <!-- GUESTS -->
   <div class="menu-wrapper" [class.active]="currentView === 'guestsHome'">
     <ion-grid class="center-grid">
@@ -139,7 +134,8 @@
       </ion-row>
     </ion-grid>
   </div>
-  <!-- GUESTSHOME - ACCESSO -->
+
+  <!-- GUEST - ACCESSO -->
   <div class="menu-wrapper" [class.active]="currentView === 'guestsData'">
     <ion-card class="input-card">
           <ion-card-header>
@@ -179,44 +175,45 @@
   </div>
 
   <!-- GUEST USCITA -->
-<div class="menu-wrapper" [class.active]="currentView === 'guestsExit'">
-  <ion-card class="input-card">
-    <ion-card-header>
-      <ion-card-title>Ospiti Presenti</ion-card-title>
-      
-      <ion-searchbar 
-        placeholder="Cerca ospite..." 
-        animated="true"
-        debounce="300"
-        (ionInput)="handleSearch($event)">
-      </ion-searchbar>
+  <div class="menu-wrapper" [class.active]="currentView === 'guestsExit'">
+    <ion-card class="input-card">
+      <ion-card-header>
+        <ion-card-title>Ospiti Presenti</ion-card-title>
+        
+        <ion-searchbar 
+          placeholder="Cerca ospite..." 
+          animated="true"
+          debounce="300"
+          (ionInput)="handleSearch($event)">
+        </ion-searchbar>
 
-    </ion-card-header>
+      </ion-card-header>
 
-    <ion-content style="height: 300px">
-      <ion-list>
-        @for (guest of filteredGuests$ | async; track guest.id) {
-          <ion-item>
-            <ion-label>
-              <h2>{{ guest.name }}</h2>
-              <p>{{ guest.entryTime | date:'shortTime' }} - {{ guest.reason }}</p>
-            </ion-label>
-            
-            <ion-button slot="end" color="warning" (click)="doCheckout(guest.id!)">
-              Uscita
-            </ion-button>
-          </ion-item>
-        } @empty {
-          <ion-item>
-            <ion-label class="ion-text-center">
-              <p>Nessun ospite trovato.</p>
-            </ion-label>
-          </ion-item>
-        }
-      </ion-list>
-    </ion-content>
-  </ion-card>
-</div>
+      <ion-content style="height: 300px">
+        <ion-list>
+          @for (guest of filteredGuests$ | async; track guest.id) {
+            <ion-item>
+              <ion-label>
+                <h2>{{ guest.name }}</h2>
+                <p>{{ guest.entryTime | date:'shortTime' }} - {{ guest.reason }}</p>
+              </ion-label>
+              
+              <ion-button slot="end" color="warning" (click)="doCheckout(guest.id!)">
+                Uscita
+              </ion-button>
+            </ion-item>
+          } @empty {
+            <ion-item>
+              <ion-label class="ion-text-center">
+                <p>Nessun ospite trovato.</p>
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      </ion-content>
+    </ion-card>
+  </div>
+
   <!-- PRIVACY MODAL -->
   <ion-modal [isOpen]="isPrivacyModalOpen" (didDismiss)="closePrivacyModal()" (didPresent)="onModalDidPresent()">
     <ng-template>
