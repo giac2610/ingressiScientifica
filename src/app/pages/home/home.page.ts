@@ -61,7 +61,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   `;
 
   private readonly fragmentSrc = `
-    precision mediump float;
+    precision highp float;
     varying vec2 v_uv;
 
     uniform vec2 u_resolution;

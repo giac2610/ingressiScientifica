@@ -2,22 +2,26 @@
 /* 1. STILI PER LO SFONDO (CANVAS WEBGL) */
 /* ========================================================= */
 
-// Rende trasparente lo sfondo di Ionic
-.transparent-bg {
-  /* Assicura che ion-content non abbia background opaco */
-  --background: transparent;
-  --ion-background-color: transparent;
-  position: relative;
-}
-
-/* Stile del canvas WebGL (obbligatorio per coprire lo schermo) */
 .background-canvas {
-  position: fixed;
+  position: absolute; /* Cambia da fixed a absolute per evitare problemi di rendering su alcuni Android */
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 0; // Dietro a tutto
+  z-index: 0;      /* Livello più basso */
+  display: block;  /* Assicura che sia renderizzato */
+}
+
+// Rende trasparente lo sfondo di Ionic
+.transparent-bg {
+  /* Forziamo la trasparenza con !important */
+  --background: transparent !important;
+  --ion-background-color: transparent !important;
+  background: transparent !important;
+  
+  /* Assicuriamo che stia SOPRA al canvas */
+  position: relative;
+  z-index: 1; 
 }
 
 
@@ -42,8 +46,8 @@ ion-content {
 
   /* Blur effetto vetro smerigliato */
   // background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  // backdrop-filter: blur(4px);
+  // -webkit-backdrop-filter: blur(4px);
   position: relative;
   z-index: 10;
 }
