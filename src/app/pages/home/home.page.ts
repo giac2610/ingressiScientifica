@@ -411,6 +411,9 @@ async toggleEmployeeEntry(employee: Employee) {
   closePrivacyModal() {
     this.isPrivacyModalOpen = false;
     this.isDrawing = false;
+    if (this.signaturePadElement) {
+    this.signatureImage = this.signaturePadElement.toDataURL(); // Ottieni Base64
+    }
   }
 
   // Chiamato quando il modale ha finito di aprirsi (importante per inizializzare il canvas)
@@ -495,7 +498,7 @@ async acceptAndSign() {
     const docRef = await this.dbService.checkInGuest(newGuest); // Usa il metodo aggiornato
     console.log('Salvato su Firebase!');
     console.log('ID Generato da Firestore:', docRef.id);
-    // ... Reset e chiudi ...
+    this.dbService.logGuestActionToSheet(newGuest, "INGRESSO");
     this.closePrivacyModal();
     this.setView('main');
   } catch (err) {

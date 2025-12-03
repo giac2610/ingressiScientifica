@@ -165,7 +165,7 @@
               </div>
             </div>
 
-            <ion-button expand="block" class="submit-btn" [disabled]="!signatureImage || !guestName" (click)="setView('main')">
+            <ion-button expand="block" class="submit-btn" [disabled]="!signatureImage || !guestName" (click)="acceptAndSign()">
               Conferma Ingresso
             </ion-button>
             
@@ -261,7 +261,7 @@
           <ion-row>
 
             <ion-col>
-              <ion-button expand="block" color="success" (click)="acceptAndSign()">
+              <ion-button expand="block" color="success" (click)="closePrivacyModal()">
                 Firmando accetti l'informativa
               </ion-button>
             </ion-col>

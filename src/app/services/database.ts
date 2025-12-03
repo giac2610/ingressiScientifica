@@ -55,7 +55,7 @@ export class DatabaseService {
   
   // URL del Google Apps Script per logging su Google Sheets
   private googleStartupScriptUrl = 'https://script.google.com/macros/s/AKfycby6IM_hyL-AjcfUkXAsjRW5DONEr6cDDC2zXKr0FcuuEJ6zx_TmgZuJtvJk4Ciyhooa/exec';
-  private googleGuestScriptUrl = 'https://docs.google.com/spreadsheets/d/1xQrtmJGT6INh8Gv6MLJrWrSZlaG7OWzJBBnb0UWSViA/edit?gid=0#gid=0'
+  private googleGuestScriptUrl = 'https://script.google.com/macros/s/AKfycbyryO8fECdDpbOkizFxkzn8uADNOJM1RWfdm_2clPsASoxYiibbEVqaYZ_RbGZmQMU/exec'
 
   constructor() { }
 
@@ -175,6 +175,26 @@ export class DatabaseService {
     let sheetName = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
     // Rendi la prima lettera maiuscola
     sheetName = sheetName.charAt(0).toUpperCase() + sheetName.slice(1);
+
+    const sheetPayload = {
+      targetSheet: sheetName, // Nome del foglio basato sulla data (es. 28-11-2025)
+      action: action, // Diciamo allo script cosa fare
+      data: {
+        Data: dateStr,
+        Dipendente: guest.name,
+        Motivazione: guest.reason,
+        Firma: guest.signatureUrl || "N/A",
+        Ora: timeStr // Questa sarà usata come Ingresso o Uscita a seconda dell'action
+      }
+    };
+
+    // Invio
+    this.http.post(this.googleGuestScriptUrl, JSON.stringify(sheetPayload), {
+      headers: { 'Content-Type': 'text/plain' }
+    }).subscribe({
+      next: () => console.log(`Log ${action} inviato`),
+      error: (e) => console.error('Errore log sheet', e)
+    });
   }
 
   // async removeEmployeeFromStartup(startupId: string, employee: Employee) {
