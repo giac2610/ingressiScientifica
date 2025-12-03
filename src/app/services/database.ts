@@ -55,7 +55,7 @@ export class DatabaseService {
   
   // URL del Google Apps Script per logging su Google Sheets
   private googleStartupScriptUrl = 'https://script.google.com/macros/s/AKfycby6IM_hyL-AjcfUkXAsjRW5DONEr6cDDC2zXKr0FcuuEJ6zx_TmgZuJtvJk4Ciyhooa/exec';
-  private googleGuestScriptUrl = 'https://script.google.com/macros/s/AKfycbyryO8fECdDpbOkizFxkzn8uADNOJM1RWfdm_2clPsASoxYiibbEVqaYZ_RbGZmQMU/exec'
+  private googleGuestScriptUrl = 'https://script.google.com/macros/s/AKfycbxFpx0-jaKYcHvuFzouPDsSAwvGzKB6JlS5LmHJ7f4YdNrn3cYR7tiVCI5otI4ncoma/exec'
 
   constructor() { }
 
