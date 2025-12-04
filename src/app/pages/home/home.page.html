@@ -7,7 +7,9 @@
     <div class="logo" data-maxheight="60">
       <img fetchpriority="high" decoding="async" src="https://scientifica.vc/wp-content/uploads/2025/05/Favicon-Scientifica_Positive.png" alt="logo" class="img-responsive" data-cmp-info="10">
     </div>
-  
+    <div class="backoffice">
+      <h2 (click)="navigateToBackoffice()">Backoffice</h2>
+    </div>
   </div>
 
   <!-- MAIN MENU -->
@@ -79,8 +81,8 @@
       <ion-card-content>
         <ng-container *ngIf="ActiveEmployeeResult$ | async as ActiveEmployeeResult">
           <ion-grid>
-            <ion-row>
-              @for (emp of selectedStartup?.employees; track emp.name) {
+            <ion-row class="employees-row">
+              @for (emp of filteredEmployees; track emp.name) {
                 <ion-col size="6" size-sm="4">
                   <div 
                     class="employee-badge" 
@@ -189,7 +191,7 @@
 
       </ion-card-header>
 
-      <ion-content style="height: 300px">
+      <div class="guest-scroll-container">
         <ion-list>
           @for (guest of filteredGuests$ | async; track guest.id) {
             <ion-item>
@@ -210,7 +212,7 @@
             </ion-item>
           }
         </ion-list>
-      </ion-content>
+      </div>
     </ion-card>
   </div>
 

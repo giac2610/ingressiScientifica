@@ -24,7 +24,10 @@
   z-index: 1; 
 }
 
-
+.backoffice{
+  align-self: flex-end;
+  margin-left: auto;
+}
 /* Rimuovi la sezione gradient-wrapper e gradient non più necessaria */
 /* Rimuovi tutti i @keyframes move, morph, color-shift */
 
@@ -107,7 +110,7 @@ ion-content {
   /* Reset delle dimensioni rispetto alle card-pulsante */
   width: 90%;          /* Occupa quasi tutta la larghezza su mobile */
   max-width: 600px;    /* Più larga su desktop (invece di 420px) */
-  height: auto;        /* Altezza automatica in base al contenuto! */
+  height: 60vh;        /* Altezza automatica in base al contenuto! */
   min-height: 400px;   /* Altezza minima per estetica */
   
   margin: 0 auto;      /* Centrata orizzontalmente */
@@ -263,12 +266,6 @@ ion-content {
 }
 
 .menu-wrapper ion-col{
-  // display: flex;
-  // flex: 0 0 50%;
-  // gap: 12px;
-  // justify-content: center;
-  // align-items: center;
-
   /* Blocca la larghezza al 50% del contenitore padre */
   flex: 0 0 50%; 
   // max-width: 50% !important; 
@@ -312,35 +309,35 @@ ion-content {
 }
 
 /* --- CONTENITORE SCROLL VERTICALE --- */
-.vertical-scroll-container {
-  /* Definisci un'altezza massima per attivare lo scroll */
-  max-height: 65vh; 
-  width: 100%;
-  max-width: 900px; /* Limita larghezza su schermi grandi */
+// .vertical-scroll-container {
+//   /* Definisci un'altezza massima per attivare lo scroll */
+//   max-height: 65vh; 
+//   width: 100%;
+//   max-width: 900px; /* Limita larghezza su schermi grandi */
   
-  /* Abilita scroll verticale */
-  overflow-y: auto;
-  overflow-x: hidden;
+//   /* Abilita scroll verticale */
+//   overflow-y: auto;
+//   overflow-x: hidden;
   
-  /* EFFETTO OROLOGIO / SFUMATURA */
-  /* Sfuma i bordi sopra e sotto per dare l'idea di continuità */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+//   /* EFFETTO OROLOGIO / SFUMATURA */
+//   /* Sfuma i bordi sopra e sotto per dare l'idea di continuità */
+//   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+//   mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
   
-  /* Padding per non tagliare le ombre delle card */
-  padding: 20px 10px;
+//   /* Padding per non tagliare le ombre delle card */
+//   padding: 20px 10px;
 
-  /* Nascondere la Scrollbar (Chrome, Safari, Opera) */
-  &::-webkit-scrollbar {
-    display: none;
-  }
+//   /* Nascondere la Scrollbar (Chrome, Safari, Opera) */
+//   &::-webkit-scrollbar {
+//     display: none;
+//   }
   
-  /* Nascondere la Scrollbar (Firefox, IE, Edge) */
-  -ms-overflow-style: none;  
-  scrollbar-width: none;  
-}
+//   /* Nascondere la Scrollbar (Firefox, IE, Edge) */
+//   -ms-overflow-style: none;  
+//   scrollbar-width: none;  
+// }
 
-/* Assicurati che le card abbiano uno spazio tra loro */
+
 /* --- CONTENITORE SCROLL VERTICALE (Effetto Orologio) --- */
 .vertical-scroll-container {
   max-height: 60vh; /* Altezza massima visibile */
@@ -402,6 +399,33 @@ ion-content {
   padding-bottom: 40px; /* Spazio extra in fondo per lo scroll */
 }
 
+.employees-row {      /* Obbliga ad andare a capo */
+  justify-content: flex-start !important; /* Allinea a sinistra (risolve il taglio del primo utente) */
+
+  max-height: 55vh; 
+  
+  width: 100%;
+  overflow-y: auto;   /* Scorrimento verticale */
+  overflow-x: hidden;
+  
+  /* Nascondi Scrollbar */
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  /* Padding interno per non tagliare le ombre o i bordi */
+  padding: 5px;       /* Compensa il padding delle colonne */
+}
+
+.employees-row ion-col {
+  /* Reset delle proprietà ereditate dal menu principale */
+  flex: unset !important;            /* Sblocca il ridimensionamento */
+  width: auto !important;            /* Lascia che 'size' decida la larghezza */
+  max-width: unset !important;
+  
+  display: block !important;         /* Rimuove il flex center interno che potrebbe centrare male */
+  padding: 5px !important;           /* Spazio ridotto e uniforme tra le card */
+}
 /* Stile "Badge" Dipendente */
 .employee-badge {
   background: #f8f9fa;
@@ -447,4 +471,19 @@ ion-content {
       font-size: 0.8rem;
     }
   }
+.guest-scroll-container {
+  // max-height: 45vh; 
+  
+  width: 100%;
+  overflow-y: hidden;   /* Abilita scroll verticale */
+  overflow-x: auto; /* Blocca orizzontale */
+  
+  /* Margine per non attaccare il contenuto ai bordi */
+  padding-bottom: 10px;
+
+  /* Nascondi Scrollbar (Estetica pulita) */
+  // &::-webkit-scrollbar { display: none; }
+  // -ms-overflow-style: none;
+  // scrollbar-width: none;
+}
 }

@@ -4,6 +4,7 @@ import { IonContent, IonSelect, ToastController, IonButton, IonSelectOption, Ion
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatabaseService, Guest, Startup, Employee } from 'src/app/services/database';
+import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
 @Component({
   selector: 'app-home',
@@ -125,7 +126,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.currentView = view;
   }
 
-  constructor(private renderer: Renderer2, private dbService: DatabaseService, private toastController: ToastController) {
+  constructor(private renderer: Renderer2, private dbService: DatabaseService, private toastController: ToastController, private router: Router) {
     
   }
 
@@ -145,11 +146,11 @@ export class HomePage implements AfterViewInit, OnDestroy {
   selectedStartup: Startup | null = null;
   employeeSearchTerm: string = ''; // Variabile per la ricerca dipendenti
 
-  selectStartup(startup: Startup) {
+selectStartup(startup: Startup) {
     this.selectedStartup = startup;
-    this.setView('startupEmployees')
+    this.employeeSearchTerm = ''; // Resetta la ricerca quando cambi azienda
+    this.setView('startupEmployees');
   }
-
   // 2. GESTIONE INGRESSO/USCITA DIPENDENTE
   // Cerca se il dipendente è già nella lista degli ospiti attivi
   getActiveEntry(employee: Employee, activeGuests: Guest[]): Guest | undefined {
@@ -179,6 +180,38 @@ async toggleEmployeeEntry(employee: Employee) {
       setTimeout(() => this.setView('startup'), 1000);
   }
 
+  get filteredEmployees(): Employee[] {
+    if (!this.selectedStartup || !this.selectedStartup.employees) {
+      return [];
+    }
+
+    let employees = this.selectedStartup.employees;
+
+    // 1. FILTRO RICERCA
+    if (this.employeeSearchTerm && this.employeeSearchTerm.trim() !== '') {
+      const term = this.employeeSearchTerm.toLowerCase();
+      employees = employees.filter(emp => 
+        emp.name.toLowerCase().includes(term)
+      );
+    }
+
+    // 2. ORDINAMENTO (OUT prima, poi IN. A parità, alfabetico)
+    // Usiamo [...employees] per creare una copia e non rompere l'array originale
+    return [...employees].sort((a, b) => {
+      const statusA = a.status || 'OUT'; // Se undefined è OUT
+      const statusB = b.status || 'OUT';
+
+      // Criterio 1: Stato (OUT vince su IN)
+      if (statusA !== statusB) {
+        return statusA === 'OUT' ? -1 : 1;
+      }
+
+      // Criterio 2: Alfabetico
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  // UTILITY
   showToast(message: string, color: 'success' | 'warning' | 'danger') {
     this.toastController.create({
       message,
@@ -476,11 +509,13 @@ async toggleEmployeeEntry(employee: Employee) {
         this.showToast(`Benvenuto ${this.guestName}`, 'success');
       } else{
         this.showToast(`Errore durante il check-in, contattare amministratore`, 'danger');
-        
+
       }; // Usa il metodo aggiornato
     } catch (err) {
       console.error(err);
     }
   }
-
+  navigateToBackoffice() {
+    this.router.navigate(['/backoffice']);
+  }
 }
