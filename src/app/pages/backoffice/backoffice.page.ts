@@ -1,6 +1,6 @@
 import { ActiveEmployeeResult, Employee } from './../../services/database';
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonSegment, IonSegmentButton, 
@@ -20,7 +20,7 @@ import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploa
     CommonModule, FormsModule, 
     IonContent, IonHeader, IonTitle, IonToolbar, IonSegment, IonSegmentButton, 
     IonLabel, IonList, IonItem, IonInput, IonButton, IonIcon, IonCard, IonCardContent,
-    IonAvatar, IonBadge, IonGrid, IonRow, IonCol, IonSelectOption, IonSelect
+    IonAvatar, IonBadge, IonGrid, IonRow, IonCol, IonSelectOption, IonSelect, NgIf
   ]
 })
 export class BackofficePage {

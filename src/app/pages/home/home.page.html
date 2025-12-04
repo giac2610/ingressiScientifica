@@ -77,7 +77,7 @@
       </ion-card-header>
 
       <ion-card-content>
-        <ng-container *ngIf="activeGuests$ | async as activeGuests">
+        <ng-container *ngIf="ActiveEmployeeResult$ | async as ActiveEmployeeResult">
           <ion-grid>
             <ion-row>
               @for (emp of selectedStartup?.employees; track emp.name) {

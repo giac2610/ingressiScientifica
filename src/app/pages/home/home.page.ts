@@ -1,3 +1,4 @@
+import { ActiveEmployeeResult } from './../../services/database';
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 } from '@angular/core';
 import { IonContent, IonSelect, ToastController, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonAvatar, IonBadge, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
@@ -132,6 +133,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
   activeGuests$ = this.dbService.getActiveGuests();
+  ActiveEmployeeResult$ = this.dbService.getAllActiveEmployees();
   searchTerm$= new BehaviorSubject<string>('');
   startup$:Observable<Startup[]> = this.dbService.getStartups().pipe(
     tap(updatedStartups => {

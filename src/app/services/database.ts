@@ -229,10 +229,7 @@ export class DatabaseService {
       })
     );
   }
-  // Gestione ingresso dipendente
-  async checkInEmployee(startupName: string, employee: Employee) {
-    
-  }
+
   // logga l'azione di ingresso/uscita del dipendente su Google Sheets
   logEmployeeActionToSheet(employee: Employee, startupName: string, action: 'INGRESSO' | 'USCITA') {
     
