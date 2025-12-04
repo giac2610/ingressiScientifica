@@ -48,21 +48,26 @@
       </ion-col>
       <ion-col size="12" size-md="6" class="bordered-col">
         <h2 class="section-title">Dipendenti</h2>
-        <ion-list >
-          <ion-item *ngFor="let activeEmployee of activeEmployees$ | async">
-                      <ion-label>
-              <h2>{{ activeEmployee.employee.name }}</h2>
-              <p>Entrato: {{ activeEmployee.employee.lastEntryTime | date:'dd MMMM HH:mm' }}</p>
-              <p>Startup: {{ activeEmployee.startup}}</p>
+        <ion-list>
+          <ion-item *ngFor="let item of activeEmployees$ | async">
+            <ion-avatar slot="start">
+              <img [src]="item.employee.imageUrl || 'assets/default-avatar.png'" />
+            </ion-avatar>
+            
+            <ion-label>
+              <h2>{{ item.employee.name }}</h2>
+              <p>{{ item.startup.name }}</p>
+              <p style="font-size: 0.8em; color: gray;">
+                Ingresso: {{ item.employee.lastEntryTime | date:'HH:mm' }}
+              </p>
             </ion-label>
-            
-            <ion-badge slot="end" color="success">IN</ion-badge>
-            
-            <ion-button slot="end" fill="outline" color="warning" (click)="checkEmployeeOut(activeEmployee.employee)">
-              <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+
+            <ion-button slot="end" color="warning" fill="outline" 
+              (click)="checkEmployeeOut(item.employee, item.startup)">
+              USCITA
             </ion-button>
           </ion-item>
-        </ion-list>      
+        </ion-list> 
       </ion-col>
 
 

@@ -18,7 +18,7 @@ import {
   arrayRemove
 } from '@angular/fire/firestore'; 
 
-import { Observable } from 'rxjs';
+import { lastValueFrom, Observable } from 'rxjs';
 
 // INTERFACCE DATI
 export interface Guest {
@@ -85,79 +85,74 @@ export class DatabaseService {
   // ==========================================
 
   async checkInGuest(guest: Guest) {
-
-    const guestsRef = collection(this.firestore, 'guests');
-    addDoc(guestsRef, {
-      ...guest,
-      entryTime: new Date().toISOString(),
-      status: 'IN'
-    });
-    console.log('Salvato su Firebase!');
-    if(this.logGuestActionToSheet(guest, "INGRESSO")){
-      console.log('Logsheet inviato con successo');
-      return true
-      // se l'operazione di log ha successo elimino il doc temporaneo da Firestore
-    } else {
-      console.log('Errore logsheet, contattare amministratore', 'danger');
-      return false
-    };
+    try {
+      const guestsRef = collection(this.firestore, 'guests');
+      const docRef = addDoc(guestsRef, {
+        ...guest,
+        entryTime: new Date().toISOString(),
+        status: 'IN'
+      });
+      console.log('Salvato su Firebase!');
+      await lastValueFrom(this.logGuestActionToSheet(guest, "INGRESSO"))
+      console.log('Logsheet INGRESSO inviato con successo');
+      return true;
+    }catch (error) {
+      console.log('Errore logsheet, contattare amministratore', error);
+      return false;
+    } 
   }
 
-  async checkOutGuest(guest: Guest) {
-    // Anche 'doc' deve venire da @angular/fire
-    const guestRef = doc(this.firestore, 'guests', guest.id!);
-    updateDoc(guestRef, {
-      exitTime: new Date().toISOString(),
-      status: 'OUT'
-    });
-    if(this.logGuestActionToSheet(guest, "USCITA")){
-      console.log('Logsheet inviato con successo');
-      this.deleteGuest(guest.id!); // elimino il guest all'uscita perchè su firestore non mi serve più
-      return true
-    }else{
-      console.log('Errore logsheet, contattare amministratore', 'danger');
-      return false
+async checkOutGuest(guest: Guest) {
+    if (!guest.id) return false;
+
+    try {
+      // Aggiorna lo stato su Firestore, potenzialmente inutile
+      const guestRef = doc(this.firestore, 'guests', guest.id);
+      await updateDoc(guestRef, {
+        exitTime: new Date().toISOString(),
+        status: 'OUT'
+      });
+
+      // Logga su Google Sheet
+      // Usiamo lastValueFrom per trasformare l'Observable in una Promise e attenderla
+      await lastValueFrom(this.logGuestActionToSheet(guest, "USCITA"));
+      console.log('Logsheet USCITA inviato con successo');
+
+      await this.deleteGuest(guest.id);
+      console.log('Ospite rimosso da Firestore');
+
+      return true;
+    } catch (error) {
+      console.error('Errore durante il Check-Out (Log fallito?):', error);
+      return false;
     }
   }
 
-  logGuestActionToSheet(guest: Guest, action: 'INGRESSO' | 'USCITA'): boolean {
-    var success = false;
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('it-IT'); // Es. 28/11/2025
-    const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); // Es. 09:30
+  logGuestActionToSheet(guest: Guest, action: 'INGRESSO' | 'USCITA'): Observable<any> {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('it-IT');
+      const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
 
-    // Ottieni "dicembre 2025"
-    let sheetName = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
-    // Rendi la prima lettera maiuscola
-    sheetName = sheetName.charAt(0).toUpperCase() + sheetName.slice(1);
+      let sheetName = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+      sheetName = sheetName.charAt(0).toUpperCase() + sheetName.slice(1);
 
-    const sheetPayload = {
-      targetSheet: sheetName, // Nome del foglio basato sulla data (es. 28-11-2025)
-      action: action, // Diciamo allo script cosa fare
-      data: {
-        Data: dateStr,
-        Dipendente: guest.name,
-        Motivazione: guest.reason,
-        Firma: guest.signatureUrl || "N/A",
-        Ora: timeStr // Questa sarà usata come Ingresso o Uscita a seconda dell'action
-      }
-    };
+      const sheetPayload = {
+        targetSheet: sheetName,
+        action: action,
+        data: {
+          Data: dateStr,
+          Dipendente: guest.name,
+          Motivazione: guest.reason,
+          Firma: guest.signatureUrl || "N/A",
+          Ora: timeStr
+        }
+      };
 
-    // Invio
-    this.http.post(this.googleGuestScriptUrl, JSON.stringify(sheetPayload), {
-      headers: { 'Content-Type': 'text/plain' }
-    }).subscribe({
-      next: () => {
-        console.log(`Log ${action} inviato`)
-        success = true;
-      },
-      error: (e) => {
-        console.error('Errore log sheet', e)
-        success = false;
-      }
-    });
-    return success;
-  }
+      // Ritorna direttamente la chiamata HTTP (Observable)
+      return this.http.post(this.googleGuestScriptUrl, JSON.stringify(sheetPayload), {
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
 
   getActiveGuests(): Observable<Guest[]> {
     const guestsRef = collection(this.firestore, 'guests');
@@ -305,7 +300,11 @@ export class DatabaseService {
       }
       return emp;
     });
-
+    this.logEmployeeActionToSheet(
+      updatedEmployees.find(e => e.name === employeeName)!, 
+      startupData.name, 
+      newStatus === 'IN' ? 'INGRESSO' : 'USCITA'
+    );
     // 3. Sovrascrivi l'array nel database
     return updateDoc(startupRef, { employees: updatedEmployees });
   }

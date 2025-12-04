@@ -42,7 +42,7 @@ export class BackofficePage {
 
   // Liste Dati (Observable per aggiornamento real-time)
   startups$: Observable<Startup[]> = this.dbService.getStartups();
-  activeEmployees$: Observable<ActiveEmployeeResult[]> = this.dbService.getAllActiveEmployees();
+  activeEmployees$ = this.dbService.getAllActiveEmployees();
 
   activeGuests$: Observable<Guest[]> = this.dbService.getActiveGuests();
 
@@ -102,7 +102,7 @@ export class BackofficePage {
   }
 
   // --- AZIONI STARTUP ---
-async addStartup() {
+  async addStartup() {
     if (!this.newStartupName.trim()) return;
 
     await this.dbService.addStartup({
@@ -154,16 +154,25 @@ async addStartup() {
     }
   }
 
-  checkEmployeeOut(employee: Employee) {
+  checkEmployeeOut(employee: Employee, startup: Startup) {
     if(confirm('Confermi l\'uscita del dipendente?')) {
-      this.dbService.updateEmployeeStatus(this.selectedStartupId, employee.name, 'OUT');
+      this.dbService.updateEmployeeStatus(startup.id!, employee.name, 'OUT');
     }
 
   }
   // --- AZIONI OSPITI ---
-  checkOut(guest: Guest) {
-    if(confirm('Confermi l\'uscita dell\'ospite?')) {
-      this.dbService.checkOutGuest(guest);
+  async checkOut(guest: Guest) {
+    if(confirm(`Confermi l'uscita di ${guest.name}?`)) {
+      
+      // Il componente non sa nulla di Excel o Firestore, chiede solo il checkout
+      const success = await this.dbService.checkOutGuest(guest);
+      
+      if (success) {
+        // Opzionale: Feedback visivo se vuoi
+        console.log("Processo di uscita completato perfettamente");
+      } else {
+        alert("Errore durante l'uscita (controlla connessione o log)");
+      }
     }
   }
 }

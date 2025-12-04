@@ -20,8 +20,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   guestName: string = '';
   selectedReason: string = '';
   signatureImage: string | null = null; // Qui è da la firma in base64
-  
-  
+
   // Opzioni Menu a Tendina
   reasons: string[] = ['Visita Aziendale', 'Colloquio', 'Consegna Merci', 'Manutenzione', 'Altro'];
 
@@ -43,9 +42,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   private width: number = 0;
   private height: number = 0;
 
-  // Codici colore per la tua palette (RGB normalizzato 0-1)
   private readonly circleColors = [
-    // [0 / 255, 163 / 255, 225 / 255],     // 1. Primary (#00A3E1)
     [75 / 255, 212 / 255, 242 / 255],   // 2. Secondary (#4bd4f2)
     [136 / 255, 242 / 255, 242 / 255],  // 3. Tertiary (#88f2f2)
     [255 / 255, 255 / 255, 255 / 255],  // 4. White (QUARTO COLORE)
@@ -169,39 +166,17 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
 async toggleEmployeeEntry(employee: Employee) {
-    if (!this.selectedStartup || !this.selectedStartup.id) return;
+  this.dbService.updateEmployeeStatus(this.selectedStartup!.id!, employee.name, employee.status === 'IN' ? 'OUT' : 'IN');
 
-    const startupId = this.selectedStartup.id;
-    const startupName = this.selectedStartup.name;
-    
-    // Leggi stato attuale direttamente dall'oggetto (se manca è OUT)
     const isCurrentlyIn = employee.status === 'IN';
-    
-    // Determina nuova azione
-    const newAction = isCurrentlyIn ? 'USCITA' : 'INGRESSO';
-    const newStatus = isCurrentlyIn ? 'OUT' : 'IN';
-    
-    // Messaggi UI
+
     const message = isCurrentlyIn 
       ? `Arrivederci ${employee.name}` 
       : `Benvenuto ${employee.name}`;
     const color = isCurrentlyIn ? 'warning' : 'success';
 
-    try {
-      // A. Aggiorna DB (cambia lo stato nell'array)
-      await this.dbService.updateEmployeeStatus(startupId, employee.name, newStatus);
-      
-      // B. Invia Log a Google Sheet
-      this.dbService.logEmployeeActionToSheet(employee, startupName, newAction);
-
-      // C. Feedback UI
       this.showToast(message, color);
       setTimeout(() => this.setView('startup'), 1000);
-
-    } catch (e) {
-      console.error(e);
-      this.showToast('Errore aggiornamento', 'danger');
-    }
   }
 
   showToast(message: string, color: 'success' | 'warning' | 'danger') {
@@ -495,12 +470,13 @@ async toggleEmployeeEntry(employee: Employee) {
       status: 'IN',
       signatureUrl: this.signatureImage || '' // <--- SALVA LA FIRMA QUI
     };
-
+    this.setView('main')
     try {
       if(await this.dbService.checkInGuest(newGuest)){
         this.showToast(`Benvenuto ${this.guestName}`, 'success');
       } else{
         this.showToast(`Errore durante il check-in, contattare amministratore`, 'danger');
+        
       }; // Usa il metodo aggiornato
     } catch (err) {
       console.error(err);
