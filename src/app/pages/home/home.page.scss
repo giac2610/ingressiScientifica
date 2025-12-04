@@ -306,6 +306,8 @@ ion-content {
   margin: 24px;
   font-size: 1.75em;
   z-index: 11;
+
+  
 }
 
 /* --- CONTENITORE SCROLL VERTICALE --- */
@@ -471,19 +473,54 @@ ion-content {
       font-size: 0.8rem;
     }
   }
-.guest-scroll-container {
-  // max-height: 45vh; 
-  
-  width: 100%;
-  overflow-y: hidden;   /* Abilita scroll verticale */
-  overflow-x: auto; /* Blocca orizzontale */
-  
-  /* Margine per non attaccare il contenuto ai bordi */
-  padding-bottom: 10px;
 
-  /* Nascondi Scrollbar (Estetica pulita) */
-  // &::-webkit-scrollbar { display: none; }
-  // -ms-overflow-style: none;
-  // scrollbar-width: none;
-}
+  .guest-scroll-card{
+      // max-height: 100%;
+      display: flex;
+      flex-direction: column;
+
+      --background: rgba(0, 163, 225, 0.9); 
+      --color: #fff;
+      // --color: rgb(48,49,51);
+      --border-style: none;
+      --border-width: 0;
+      border-radius:  17px !important;
+      // --box-shadow: none !important;
+      width: 420px;
+      height: 260px;
+
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+
+      font-weight: bold; 
+      text-transform: none;
+      // box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+      --box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+      
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 14px 24px !important; 
+      margin: 24px;
+      font-size: 1.75em;
+      z-index: 11;
+  }
+  .guest-scroll-container {
+    /* Altezza fissa dell'area visibile */
+    height: 350px;       
+    /* Larghezza piena */
+    width: 100%;
+    
+    /* ABILITA SCROLL VERTICALE */
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+    /* Maschera di sfumatura (opzionale, per effetto elegante) */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+
+    /* Nascondi la barra di scorrimento (estetica) */
+    &::-webkit-scrollbar { display: none; }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

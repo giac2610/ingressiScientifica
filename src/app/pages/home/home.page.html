@@ -191,7 +191,7 @@
 
       </ion-card-header>
 
-      <div class="guest-scroll-container">
+      <ion-card-content class="guest-scroll-container">
         <ion-list>
           @for (guest of filteredGuests$ | async; track guest.id) {
             <ion-item>
@@ -212,7 +212,7 @@
             </ion-item>
           }
         </ion-list>
-      </div>
+      </ion-card-content>
     </ion-card>
   </div>
 
