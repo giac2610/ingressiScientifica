@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs/operators';
 
 import { 
   Firestore, 
@@ -44,6 +45,10 @@ export interface Employee {
   status?: 'IN' | 'OUT';
   lastEntryTime?: string;
 }
+export interface ActiveEmployeeResult {
+  employee: Employee;
+  startup: Startup;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -82,20 +87,76 @@ export class DatabaseService {
   async checkInGuest(guest: Guest) {
 
     const guestsRef = collection(this.firestore, 'guests');
-    return addDoc(guestsRef, {
+    addDoc(guestsRef, {
       ...guest,
       entryTime: new Date().toISOString(),
       status: 'IN'
     });
+    console.log('Salvato su Firebase!');
+    if(this.logGuestActionToSheet(guest, "INGRESSO")){
+      console.log('Logsheet inviato con successo');
+      return true
+      // se l'operazione di log ha successo elimino il doc temporaneo da Firestore
+    } else {
+      console.log('Errore logsheet, contattare amministratore', 'danger');
+      return false
+    };
   }
 
-  async checkOutGuest(guestId: string) {
+  async checkOutGuest(guest: Guest) {
     // Anche 'doc' deve venire da @angular/fire
-    const guestRef = doc(this.firestore, 'guests', guestId);
-    return updateDoc(guestRef, {
+    const guestRef = doc(this.firestore, 'guests', guest.id!);
+    updateDoc(guestRef, {
       exitTime: new Date().toISOString(),
       status: 'OUT'
     });
+    if(this.logGuestActionToSheet(guest, "USCITA")){
+      console.log('Logsheet inviato con successo');
+      this.deleteGuest(guest.id!); // elimino il guest all'uscita perchè su firestore non mi serve più
+      return true
+    }else{
+      console.log('Errore logsheet, contattare amministratore', 'danger');
+      return false
+    }
+  }
+
+  logGuestActionToSheet(guest: Guest, action: 'INGRESSO' | 'USCITA'): boolean {
+    var success = false;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('it-IT'); // Es. 28/11/2025
+    const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); // Es. 09:30
+
+    // Ottieni "dicembre 2025"
+    let sheetName = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+    // Rendi la prima lettera maiuscola
+    sheetName = sheetName.charAt(0).toUpperCase() + sheetName.slice(1);
+
+    const sheetPayload = {
+      targetSheet: sheetName, // Nome del foglio basato sulla data (es. 28-11-2025)
+      action: action, // Diciamo allo script cosa fare
+      data: {
+        Data: dateStr,
+        Dipendente: guest.name,
+        Motivazione: guest.reason,
+        Firma: guest.signatureUrl || "N/A",
+        Ora: timeStr // Questa sarà usata come Ingresso o Uscita a seconda dell'action
+      }
+    };
+
+    // Invio
+    this.http.post(this.googleGuestScriptUrl, JSON.stringify(sheetPayload), {
+      headers: { 'Content-Type': 'text/plain' }
+    }).subscribe({
+      next: () => {
+        console.log(`Log ${action} inviato`)
+        success = true;
+      },
+      error: (e) => {
+        console.error('Errore log sheet', e)
+        success = false;
+      }
+    });
+    return success;
   }
 
   getActiveGuests(): Observable<Guest[]> {
@@ -111,6 +172,10 @@ export class DatabaseService {
     return this.getCollectionData<Guest>(q);
   }
 
+  deleteGuest(id: string) {
+    const docRef = doc(this.firestore, 'guests', id);
+    return deleteDoc(docRef);
+  }
 // ==========================================
   // GESTIONE STARTUP & DIPENDENTI
   // ==========================================
@@ -126,13 +191,48 @@ export class DatabaseService {
   }
 
   // Aggiungi Dipendente a una Startup esistente
-// IMPORTANTE: Quando aggiungi un dipendente, inizializzalo con status 'OUT'
   async addEmployeeToStartup(startupId: string, employee: Employee) {
     const startupRef = doc(this.firestore, 'startups', startupId);
     const newEmp = { ...employee, status: 'OUT' }; // Default OUT
     return updateDoc(startupRef, { employees: arrayUnion(newEmp) });
   }
 
+  getAllActiveEmployees(): Observable<ActiveEmployeeResult[]> {
+    // 1. Prendi lo stream delle startup (che si aggiorna in tempo reale)
+    return this.getStartups().pipe(
+      // 2. Trasforma i dati
+      map(startups => {
+        const activeList: ActiveEmployeeResult[] = [];
+
+        // Cicla su ogni startup
+        for (const startup of startups) {
+          if (startup.employees) {
+            // Cicla su ogni dipendente della startup
+            for (const emp of startup.employees) {
+              // Se è PRESENTE, aggiungilo alla lista risultato
+              if (emp.status === 'IN') {
+                activeList.push({
+                  employee: emp,
+                  startup: startup // Passiamo l'intera startup (così hai nome, logo, id)
+                });
+              }
+            }
+          }
+        }
+        
+        // Opzionale: Ordina per orario di ingresso più recente
+        return activeList.sort((a, b) => {
+          const timeA = a.employee.lastEntryTime || '';
+          const timeB = b.employee.lastEntryTime || '';
+          return timeB.localeCompare(timeA);
+        });
+      })
+    );
+  }
+  // Gestione ingresso dipendente
+  async checkInEmployee(startupName: string, employee: Employee) {
+    
+  }
   // logga l'azione di ingresso/uscita del dipendente su Google Sheets
   logEmployeeActionToSheet(employee: Employee, startupName: string, action: 'INGRESSO' | 'USCITA') {
     
@@ -166,46 +266,6 @@ export class DatabaseService {
     });
   }
 
-  logGuestActionToSheet(guest: Guest, action: 'INGRESSO' | 'USCITA') {
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('it-IT'); // Es. 28/11/2025
-    const timeStr = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); // Es. 09:30
-
-    // Ottieni "dicembre 2025"
-    let sheetName = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
-    // Rendi la prima lettera maiuscola
-    sheetName = sheetName.charAt(0).toUpperCase() + sheetName.slice(1);
-
-    const sheetPayload = {
-      targetSheet: sheetName, // Nome del foglio basato sulla data (es. 28-11-2025)
-      action: action, // Diciamo allo script cosa fare
-      data: {
-        Data: dateStr,
-        Dipendente: guest.name,
-        Motivazione: guest.reason,
-        Firma: guest.signatureUrl || "N/A",
-        Ora: timeStr // Questa sarà usata come Ingresso o Uscita a seconda dell'action
-      }
-    };
-
-    // Invio
-    this.http.post(this.googleGuestScriptUrl, JSON.stringify(sheetPayload), {
-      headers: { 'Content-Type': 'text/plain' }
-    }).subscribe({
-      next: () => console.log(`Log ${action} inviato`),
-      error: (e) => console.error('Errore log sheet', e)
-    });
-  }
-
-  // async removeEmployeeFromStartup(startupId: string, employee: Employee) {
-  //   const startupRef = doc(this.firestore, 'startups', startupId);
-    
-  //   // arrayRemove cerca l'oggetto identico nell'array e lo rimuove
-  //   return updateDoc(startupRef, {
-  //     employees: arrayRemove(employee)
-  //   });
-  // }
-
   async removeEmployeeFromStartup(startupId: string, employeeName: string) {
     const startupRef = doc(this.firestore, 'startups', startupId);
     const snapshot = await getDoc(startupRef);
@@ -214,6 +274,7 @@ export class DatabaseService {
     const updatedEmployees = employees.filter(e => e.name !== employeeName);
     return updateDoc(startupRef, { employees: updatedEmployees });
   }
+
   getStartups(): Observable<Startup[]> {
     const startupsRef = collection(this.firestore, 'startups');
     const q = query(startupsRef, orderBy('name', 'asc'));

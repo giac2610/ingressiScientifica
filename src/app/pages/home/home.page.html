@@ -198,7 +198,7 @@
                 <p>{{ guest.entryTime | date:'shortTime' }} - {{ guest.reason }}</p>
               </ion-label>
               
-              <ion-button slot="end" color="warning" (click)="doCheckout(guest.id!)">
+              <ion-button slot="end" color="warning" (click)="doCheckout(guest)">
                 Uscita
               </ion-button>
             </ion-item>

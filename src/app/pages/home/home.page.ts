@@ -225,8 +225,8 @@ async toggleEmployeeEntry(employee: Employee) {
     })
   );
 
-  doCheckout(id: string) {
-    this.dbService.checkOutGuest(id);
+  doCheckout(guest: Guest) {
+    this.dbService.checkOutGuest(guest);
   }
 
   ngAfterViewInit() {
@@ -480,30 +480,29 @@ async toggleEmployeeEntry(employee: Employee) {
     this.signatureImage = null;
   }
 
-async acceptAndSign() {
-  if (this.signaturePadElement) {
-    this.signatureImage = this.signaturePadElement.toDataURL(); // Ottieni Base64
-  }
-  
-  const newGuest: Guest = {
-    // id: this.dbService.generateId(), // Genera un ID unico per l'ospite
-    name: this.guestName,
-    reason: this.selectedReason,
-    entryTime: new Date().toISOString(),
-    status: 'IN',
-    signatureUrl: this.signatureImage || '' // <--- SALVA LA FIRMA QUI
-  };
+  async acceptAndSign() {
+    if (this.signaturePadElement) {
+      this.signatureImage = this.signaturePadElement.toDataURL(); // Ottieni Base64
+    }
+    
+    const newGuest: Guest = {
+      // id: this.dbService.generateId(), // Genera un ID unico per l'ospite
+      name: this.guestName,
+      reason: this.selectedReason,
+      entryTime: new Date().toISOString(),
+      status: 'IN',
+      signatureUrl: this.signatureImage || '' // <--- SALVA LA FIRMA QUI
+    };
 
-  try {
-    const docRef = await this.dbService.checkInGuest(newGuest); // Usa il metodo aggiornato
-    console.log('Salvato su Firebase!');
-    console.log('ID Generato da Firestore:', docRef.id);
-    this.dbService.logGuestActionToSheet(newGuest, "INGRESSO");
-    this.closePrivacyModal();
-    this.setView('main');
-  } catch (err) {
-    console.error(err);
+    try {
+      if(await this.dbService.checkInGuest(newGuest)){
+        this.showToast(`Benvenuto ${this.guestName}`, 'success');
+      } else{
+        this.showToast(`Errore durante il check-in, contattare amministratore`, 'danger');
+      }; // Usa il metodo aggiornato
+    } catch (err) {
+      console.error(err);
+    }
   }
-}
 
 }

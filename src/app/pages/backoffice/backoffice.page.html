@@ -21,29 +21,49 @@
 
   <div *ngIf="selectedSegment === 'guests'">
     <h2 class="section-title">Ospiti Attualmente Presenti</h2>
-    
-    <ion-list>
-      <ion-item *ngFor="let guest of activeGuests$ | async">
-        <ion-label>
-          <h2>{{ guest.name }}</h2>
-          <p>Entrato: {{ guest.entryTime | date:'dd MMMM HH:mm' }}</p>
-          <p>Motivo: {{ guest.reason }}</p>
-        </ion-label>
-        
-        <ion-badge slot="end" color="success">IN</ion-badge>
-        
-        <ion-button slot="end" fill="outline" color="warning" (click)="checkOut(guest.id!)">
-          <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
-        </ion-button>
-      </ion-item>
+    <ion-row>
+      <ion-list style="width: max-content;">
+        <ion-item *ngFor="let guest of activeGuests$ | async">
+          <ion-label>
+            <h2>{{ guest.name }}</h2>
+            <p>Entrato: {{ guest.entryTime | date:'dd MMMM HH:mm' }}</p>
+            <p>Motivo: {{ guest.reason }}</p>
+          </ion-label>
+          
+          <ion-badge slot="end" color="success">IN</ion-badge>
+          
+          <ion-button slot="end" fill="outline" color="warning" (click)="checkOut(guest)">
+            <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
 
-      <ion-item *ngIf="(activeGuests$ | async)?.length === 0">
-        <ion-label class="ion-text-center">
-          <p>Nessun ospite presente al momento.</p>
-        </ion-label>
-      </ion-item>
-    </ion-list>
+        <ion-item *ngIf="(activeGuests$ | async)?.length === 0">
+          <ion-label class="ion-text-center">
+            <p>Nessun ospite presente al momento.</p>
+          </ion-label>
+        </ion-item>
+      </ion-list> 
+
+      <ion-list style="width: max-content;">
+        <ion-item *ngFor="let activeEmployee of activeEmployees$ | async">
+                    <ion-label>
+            <h2>{{ activeEmployee.employee.name }}</h2>
+            <p>Entrato: {{ activeEmployee.employee.lastEntryTime | date:'dd MMMM HH:mm' }}</p>
+            <p>Startup: {{ activeEmployee.startup }}</p>
+          </ion-label>
+          
+          <ion-badge slot="end" color="success">IN</ion-badge>
+          
+          <ion-button slot="end" fill="outline" color="warning" (click)="checkEmployeeOut(activeEmployee.employee)">
+            <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-list>
+    </ion-row>
+
+
   </div>
+
   <div *ngIf="selectedSegment === 'startups'">
     
     <ion-grid>

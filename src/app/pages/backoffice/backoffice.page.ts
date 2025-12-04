@@ -1,4 +1,4 @@
-import { Employee } from './../../services/database';
+import { ActiveEmployeeResult, Employee } from './../../services/database';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -42,6 +42,8 @@ export class BackofficePage {
 
   // Liste Dati (Observable per aggiornamento real-time)
   startups$: Observable<Startup[]> = this.dbService.getStartups();
+  activeEmployees$: Observable<ActiveEmployeeResult[]> = this.dbService.getAllActiveEmployees();
+
   activeGuests$: Observable<Guest[]> = this.dbService.getActiveGuests();
 
   constructor() {
@@ -138,7 +140,7 @@ async addStartup() {
     }
   }
 
-async deleteEmployee(employee: Employee) {
+  async deleteEmployee(employee: Employee) {
     if (!this.selectedStartupId) return;
 
     const confirmDelete = confirm(`Vuoi rimuovere ${employee.name} dal team?`);
@@ -151,10 +153,17 @@ async deleteEmployee(employee: Employee) {
       console.error('Errore rimozione:', error);
     }
   }
+
+  checkEmployeeOut(employee: Employee) {
+    if(confirm('Confermi l\'uscita del dipendente?')) {
+      this.dbService.updateEmployeeStatus(this.selectedStartupId, employee.name, 'OUT');
+    }
+
+  }
   // --- AZIONI OSPITI ---
-  checkOut(guestId: string) {
+  checkOut(guest: Guest) {
     if(confirm('Confermi l\'uscita dell\'ospite?')) {
-      this.dbService.checkOutGuest(guestId);
+      this.dbService.checkOutGuest(guest);
     }
   }
 }
