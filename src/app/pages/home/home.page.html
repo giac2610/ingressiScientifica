@@ -163,7 +163,7 @@
                 <img *ngIf="signatureImage" [src]="signatureImage" alt="Firma Ospite" />
               </div>
               <div class="status-icon">
-                <ion-icon [name]="signatureImage ? 'checkmark-circle' : 'create'"></ion-icon>
+                <ion-icon [name]="signatureImage ? 'checkmark-circle' : 'create'" [color]="signatureImage ? 'success' : 'warning'"></ion-icon>
               </div>
             </div>
 
@@ -178,7 +178,7 @@
 
   <!-- GUEST USCITA -->
   <div class="menu-wrapper" [class.active]="currentView === 'guestsExit'">
-    <ion-card class="input-card">
+    <ion-card class="fixed-header-card">
       <ion-card-header>
         <ion-card-title>Ospiti Presenti</ion-card-title>
         
@@ -191,7 +191,7 @@
 
       </ion-card-header>
 
-      <ion-card-content class="guest-scroll-container">
+      <ion-card-content>
         <ion-list>
           @for (guest of filteredGuests$ | async; track guest.id) {
             <ion-item>

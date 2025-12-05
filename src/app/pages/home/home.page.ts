@@ -1,3 +1,5 @@
+import { addIcons } from 'ionicons';
+import { create, checkmarkCircle } from 'ionicons/icons';
 import { ActiveEmployeeResult } from './../../services/database';
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 } from '@angular/core';
 import { IonContent, IonSelect, ToastController, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonAvatar, IonBadge, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
@@ -127,7 +129,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
   constructor(private renderer: Renderer2, private dbService: DatabaseService, private toastController: ToastController, private router: Router) {
-    
+    addIcons({create, checkmarkCircle});
   }
 
   activeGuests$ = this.dbService.getActiveGuests();

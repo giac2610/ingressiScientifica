@@ -298,7 +298,7 @@ ion-content {
   text-transform: none;
   // box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
   --box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
-  overflow-y: auto;
+  // overflow-y: auto;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -428,6 +428,51 @@ ion-content {
   display: block !important;         /* Rimuove il flex center interno che potrebbe centrare male */
   padding: 5px !important;           /* Spazio ridotto e uniforme tra le card */
 }
+
+/* Classe specifica per bloccare l'header e scrollare il contenuto */
+.menu-wrapper .fixed-header-card {
+  /* Sovrascriviamo il display block predefinito solo per questa card */
+  display: flex !important; 
+  flex-direction: column;
+  overflow: hidden; /* Impedisce alla card di allungarsi oltre la sua altezza definita */
+
+    /* Reset delle dimensioni rispetto alle card-pulsante */
+  width: 100%;          /* Occupa quasi tutta la larghezza su mobile */
+  max-width: 600px;    /* Più larga su desktop (invece di 420px) */
+  height: 60vh;        /* Altezza automatica in base al contenuto! */
+  min-height: 400px;   /* Altezza minima per estetica */
+  
+  margin: 0 auto;      /* Centrata orizzontalmente */
+  // padding: 10px;       /* Un po' di respiro interno */
+  
+  /* Stile visivo */
+  background: rgba(255, 255, 255, 0.85); /* Più opaca per leggere meglio */
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  color: #000000;      /* Testo generico */
+  --color: #000000;    /* Variabile Ionic per il testo */
+}
+
+/* Facciamo espandere e scrollare il contenuto interno */
+.menu-wrapper .fixed-header-card ion-card-content {
+  flex: 1;          /* Occupa tutto lo spazio verticale rimanente */
+  overflow-y: auto; /* Abilita lo scroll qui dentro */
+  margin: 0;
+  width: 100%;
+  /* Fix per lo scro ll fluido su iOS */
+  -webkit-overflow-scrolling: touch; 
+}
+
+/* Opzionale: Assicurati che l'header non si schiacci */
+.menu-wrapper .fixed-header-card ion-card-header {
+  // flex-shrink: 0;
+  width: 100%;
+  z-index: 10;
+  margin: 0;
+  background: inherit; /* Mantiene coerenza con lo sfondo se necessario */
+}
+
 /* Stile "Badge" Dipendente */
 .employee-badge {
   background: #f8f9fa;
