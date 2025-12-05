@@ -25,8 +25,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
   signatureImage: string | null = null; // Qui è da la firma in base64
 
   // Opzioni Menu a Tendina
-  reasons: string[] = ['Visita Aziendale', 'Colloquio', 'Consegna Merci', 'Manutenzione', 'Altro'];
-
+  // reasons: string[] = ['Visita Aziendale', 'Colloquio', 'Consegna Merci', 'Manutenzione', 'Altro'];
+  reasons$ = this.dbService.getReasons();
   // Stato Modale
   isPrivacyModalOpen: boolean = false;
   

@@ -151,8 +151,8 @@
 
             <ion-item class="custom-input">
               <ion-select label="Motivazione Ingresso" labelPlacement="floating" [(ngModel)]="selectedReason" interface="popover">
-                <ion-select-option *ngFor="let reason of reasons" [value]="reason">
-                  {{ reason }}
+                <ion-select-option *ngFor="let reason of reasons$ | async" [value]="reason.text">
+                  {{ reason.text }}
                 </ion-select-option>
               </ion-select>
             </ion-item>

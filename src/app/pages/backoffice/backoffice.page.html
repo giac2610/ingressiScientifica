@@ -5,13 +5,29 @@
   
   <ion-toolbar>
     <ion-segment [(ngModel)]="selectedSegment">
-      <ion-segment-button value="guests">
+      <ion-segment-button value="presenze">
         <ion-icon name="people-outline"></ion-icon>
-        <ion-label>Ospiti in Sede</ion-label>
+        <ion-label>Persone in Sede</ion-label>
       </ion-segment-button>
+
+      <ion-segment-button value="guests">
+        <ion-icon name="settings-outline"></ion-icon>
+        <ion-label>Ospiti (Motivazioni)</ion-label>
+      </ion-segment-button>
+
       <ion-segment-button value="startups">
         <ion-icon name="business-outline"></ion-icon>
         <ion-label>Gestione Startup</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="suppliers">
+        <ion-icon name="cart-outline"></ion-icon>
+        <ion-label>Fornitori</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="third_parties">
+        <ion-icon name="briefcase-outline"></ion-icon>
+        <ion-label>Utenti Terzi</ion-label>
       </ion-segment-button>
     </ion-segment>
   </ion-toolbar>
@@ -19,7 +35,7 @@
 
 <ion-content class="ion-padding">
 
-  <div *ngIf="selectedSegment === 'guests'">
+  <div *ngIf="selectedSegment === 'presenze'">
     <h2 class="section-title">Persone Attualmente Presenti</h2>
     <ion-row class="lists-container">
       <ion-col size="12" size-md="6" class="bordered-col">
@@ -77,129 +93,291 @@
   </div>
 
   <div *ngIf="selectedSegment === 'startups'">
-    
     <ion-grid>
       <ion-row>
         
-        <ion-col size="12" size-md="6">
-          <ion-card>
+        <ion-col size="12" size-md="4">
+          <ion-card class="sticky-card">
             <ion-card-header>
-              <ion-card-title>1. Nuova Startup</ion-card-title>
+              <ion-card-title>Nuova Startup</ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <ion-item>
-                <ion-input label="Nome Startup" labelPlacement="floating" [(ngModel)]="newStartupName"></ion-input>
+                <ion-input label="Nome" labelPlacement="stacked" [(ngModel)]="newStartupName"></ion-input>
               </ion-item>
               <ion-item>
-                <ion-textarea label="Descrizione" labelPlacement="floating" [(ngModel)]="newStartupDesc"></ion-textarea>
+                <ion-textarea label="Link logo" placeholder="Facoltativo" labelPlacement="stacked" [(ngModel)]="newStartupLogo"></ion-textarea>
               </ion-item>
               
-              <div class="drop-zone" (drop)="onDrop($event, 'startup')" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)">
+              <div class="drop-zone" (drop)="onDrop($event, 'newStartup')" (dragover)="onDragOver($event)">
                 <div *ngIf="!newStartupLogo" class="placeholder">
-                  <ion-icon name="cloud-upload-outline" style="font-size: 30px;"></ion-icon>
-                  <p>Trascina il Logo qui<br>o incolla un Link sotto</p>
+                  <ion-icon name="cloud-upload-outline"></ion-icon>
+                  <p>Trascina Logo</p>
                 </div>
                 <img *ngIf="newStartupLogo" [src]="newStartupLogo" class="preview-img">
               </div>
 
+              <ion-button expand="block" (click)="addStartup()" [disabled]="!newStartupName">
+                Crea
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="12" size-md="8">
+          
+          <div *ngIf="!selectedStartup">
+            <ion-row class="ion-align-items-center">
+              <ion-col>
+                <h2>Elenco Startup</h2>
+              </ion-col>
+              <ion-col>
+                <ion-searchbar [(ngModel)]="startupSearchTerm" placeholder="Cerca azienda..."></ion-searchbar>
+              </ion-col>
+            </ion-row>
+
+            <ion-grid>
+              <ion-row>
+                <ng-container *ngIf="allStartups$ | async as startups">
+                  @for (s of filterStartups(startups); track s.id) {
+                    <ion-col size="6" size-lg="4">
+                      <ion-card class="startup-list-card" (click)="selectStartup(s)">
+                        <div class="card-img-wrapper" [style.background-image]="'url(' + (s.logoUrl || 'assets/placeholder.png') + ')'"></div>
+                        <ion-card-content>
+                          <h3>{{ s.name }}</h3>
+                          <p>{{ s.employees.length || 0 }} Dipendenti</p>
+                        </ion-card-content>
+                      </ion-card>
+                    </ion-col>
+                  }
+                </ng-container>
+              </ion-row>
+            </ion-grid>
+          </div>
+
+          <div *ngIf="selectedStartup">
+            
+            <div class="detail-header">
+              <ion-button fill="clear" (click)="deselectStartup()">
+                <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+                Torna alla lista
+              </ion-button>
+              <ion-button fill="outline" color="danger" (click)="deleteStartup(selectedStartup.id!)">
+                Elimina Azienda
+              </ion-button>
+            </div>
+
+            <ion-card class="edit-mode-card">
+              <ion-card-content>
+                <ion-row>
+                  <ion-col size="4">
+                    <div class="drop-zone small" (drop)="onDrop($event, 'editStartup')" (dragover)="onDragOver($event)">
+                      <img *ngIf="selectedStartup.logoUrl" [src]="selectedStartup.logoUrl" class="preview-img">
+  
+                      <div *ngIf="!selectedStartup.logoUrl" class="icon-placeholder">
+                        <ion-icon name="cloud-upload-outline"></ion-icon>
+                      </div>
+                    </div>
+                  </ion-col>
+                  <ion-col size="8">
+                    <ion-item>
+                      <ion-input label="Nome Azienda" labelPlacement="stacked" [(ngModel)]="selectedStartup.name"></ion-input>
+                    </ion-item>
+                    <ion-button size="small" fill="outline" (click)="updateStartup()">
+                      <ion-icon slot="start" name="save-outline"></ion-icon>
+                      Salva Dati Azienda
+                    </ion-button>
+                  </ion-col>
+                </ion-row>
+              </ion-card-content>
+            </ion-card>
+
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>Gestione Team</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                
+                <div class="employee-form-box">
+                  <h4 style="margin-top:0">{{ editingEmployee ? 'Modifica Dipendente' : 'Nuovo Dipendente' }}</h4>
+                  <ion-row class="ion-align-items-center">
+                    <ion-col size="auto">
+                      <div class="drop-zone avatar-zone" (drop)="onDrop($event, 'employee')" (dragover)="onDragOver($event)">
+                        <img *ngIf="empFormImage" [src]="empFormImage" class="avatar-preview">
+  
+                        <div *ngIf="!empFormImage" class="icon-placeholder">
+                          <ion-icon name="cloud-upload-outline"></ion-icon>
+                        </div>
+                      </div>
+                    </ion-col>
+                    <ion-col>
+                      <ion-item>
+                        <ion-input placeholder="Nome e Cognome" [(ngModel)]="empFormName"></ion-input>
+                      </ion-item>
+                      <ion-item>
+                        <ion-input placeholder="Ruolo" [(ngModel)]="empFormRole"></ion-input>
+                      </ion-item>
+                    </ion-col>
+                    <ion-col size="auto">
+                      <ion-button (click)="saveEmployee()" [color]="editingEmployee ? 'warning' : 'primary'">
+                        {{ editingEmployee ? 'Aggiorna' : 'Aggiungi' }}
+                      </ion-button>
+                      <ion-button *ngIf="editingEmployee" fill="clear" (click)="resetEmployeeForm()">Annulla</ion-button>
+                    </ion-col>
+                  </ion-row>
+                </div>
+
+                <ion-list>
+                  <ng-container *ngFor="let s of allStartups$ | async">
+                    <ng-container *ngIf="s.id === selectedStartup.id">
+                      
+                      <ion-item *ngFor="let emp of s.employees">
+                        <ion-avatar slot="start">
+                          <img [src]="emp.imageUrl || 'assets/default-avatar.png'">
+                        </ion-avatar>
+                        <ion-label>
+                          <h3>{{ emp.name }}</h3>
+                          <p>{{ emp.role }}</p>
+                        </ion-label>
+                        
+                        <ion-button slot="end" fill="clear" (click)="editEmployee(emp)">
+                          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                        </ion-button>
+                        <ion-button slot="end" fill="clear" color="danger" (click)="deleteEmployee(emp)">
+                          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                        </ion-button>
+                      </ion-item>
+
+                    </ng-container>
+                  </ng-container>
+                </ion-list>
+
+              </ion-card-content>
+            </ion-card>
+
+          </div> </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <div *ngIf="selectedSegment === 'guests'">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="6">
+          <ion-card>
+            <ion-card-header><ion-card-title>Gestione Motivazioni</ion-card-title></ion-card-header>
+            <ion-card-content>
               <ion-item>
-                <ion-input label="Oppure Link Logo" labelPlacement="floating" [(ngModel)]="newStartupLogo"></ion-input>
+                <ion-input label="Nuova Motivazione" labelPlacement="floating" [(ngModel)]="newReasonText"></ion-input>
+                <ion-button slot="end" (click)="addReason()" [disabled]="!newReasonText">Aggiungi</ion-button>
+              </ion-item>
+              
+              <ion-list class="ion-margin-top">
+                <ion-item *ngFor="let r of reasons$ | async">
+                  <ion-label>{{ r.text }}</ion-label>
+                  <ion-button slot="end" fill="clear" color="danger" (click)="deleteReason(r.id!)">
+                    <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                  </ion-button>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <div *ngIf="selectedSegment === 'suppliers'">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="6">
+          <ion-card>
+            <ion-card-header><ion-card-title>Anagrafica Fornitori</ion-card-title></ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-input label="Nome Fornitore" labelPlacement="floating" [(ngModel)]="newSupplierName"></ion-input>
+                <ion-button slot="end" (click)="addSupplier()" [disabled]="!newSupplierName">Aggiungi</ion-button>
               </ion-item>
 
-              <ion-button expand="block" class="ion-margin-top" (click)="addStartup()" [disabled]="!newStartupName">
-                Crea Startup
-              </ion-button>
+              <ion-list class="ion-margin-top">
+                <ion-item *ngFor="let s of suppliers$ | async">
+                  <ion-label>{{ s.name }}</ion-label>
+                  <ion-button slot="end" fill="clear" color="danger" (click)="deleteSupplier(s.id!)">
+                    <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                  </ion-button>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+  <div *ngIf="selectedSegment === 'third_parties'">
+    <ion-grid>
+      <ion-row>
+        <ion-col size="12" size-md="6">
+          <ion-card>
+            <ion-card-header><ion-card-title>Nuovo Utente Terzo</ion-card-title></ion-card-header>
+            <ion-card-content>
+              <ion-item>
+                <ion-input label="Nome (es. Ente/Gruppo)" labelPlacement="floating" [(ngModel)]="newThirdPartyName"></ion-input>
+              </ion-item>
+              
+              <div class="drop-zone" (drop)="onDrop($event, 'thirdParty')" (dragover)="onDragOver($event)">
+                <img *ngIf="newThirdPartyLogo" [src]="newThirdPartyLogo" class="preview-img">
+              </div>
+
+              <ion-button expand="block" (click)="addThirdParty()" [disabled]="!newThirdPartyName">Crea</ion-button>
+              
+              <ion-list class="ion-margin-top">
+                <ion-item *ngFor="let tp of thirdParties$ | async">
+                  <ion-avatar slot="start"><img [src]="tp.logoUrl || 'assets/placeholder.png'" /></ion-avatar>
+                  <ion-label>{{ tp.name }}</ion-label>
+                  <ion-button slot="end" fill="clear" color="danger" (click)="deleteThirdParty(tp.id!)"><ion-icon name="trash-outline" slot="icon-only"></ion-icon></ion-button>
+                </ion-item>
+              </ion-list>
             </ion-card-content>
           </ion-card>
         </ion-col>
 
         <ion-col size="12" size-md="6">
           <ion-card>
-            <ion-card-header>
-              <ion-card-title>2. Gestisci Team</ion-card-title>
-            </ion-card-header>
+            <ion-card-header><ion-card-title>Gestione Persone</ion-card-title></ion-card-header>
             <ion-card-content>
-              
-              <ion-item class="ion-margin-bottom">
-                <ion-select label="Seleziona Startup" labelPlacement="floating" [(ngModel)]="selectedStartupId">
-                  <ion-select-option *ngFor="let s of startups$ | async" [value]="s.id">
-                    {{ s.name }}
-                  </ion-select-option>
+              <ion-item>
+                <ion-select label="Seleziona Gruppo" labelPlacement="floating" [(ngModel)]="selectedThirdPartyId">
+                  <ion-select-option *ngFor="let tp of thirdParties$ | async" [value]="tp.id">{{ tp.name }}</ion-select-option>
                 </ion-select>
               </ion-item>
 
-              <div *ngIf="selectedStartupId">
-                
+              <div *ngIf="selectedThirdPartyId">
                 <div style="background: #f4f5f8; padding: 10px; border-radius: 8px;">
-                  <ion-item lines="none" style="--background:transparent">
-                    <ion-input label="Nome Dipendente" labelPlacement="stacked" [(ngModel)]="newEmpName"></ion-input>
-                  </ion-item>
-                  <ion-item lines="none" style="--background:transparent">
-                    <ion-input label="Ruolo" labelPlacement="stacked" [(ngModel)]="newEmpRole"></ion-input>
-                  </ion-item>
+                  <ion-item lines="none" style="--background:transparent"><ion-input label="Nome" [(ngModel)]="newTpEmpName"></ion-input></ion-item>
+                  <ion-item lines="none" style="--background:transparent"><ion-input label="Ruolo" [(ngModel)]="newTpEmpRole"></ion-input></ion-item>
                   
-                  <div class="drop-zone small" 
-                      (drop)="onDrop($event, 'employee')" 
-                      (dragover)="onDragOver($event)" 
-                      (dragleave)="onDragLeave($event)">
-                    <p *ngIf="!newEmpImage" style="margin:0; color:#666">Trascina foto qui</p>
-                    <img *ngIf="newEmpImage" [src]="newEmpImage" style="height:50px; border-radius:50%">
+                  <div class="drop-zone small" (drop)="onDrop($event, 'tpEmployee')" (dragover)="onDragOver($event)">
+                    <p *ngIf="!newTpEmpImage" style="margin:0; color:#666">Trascina foto</p>
+                    <img *ngIf="newTpEmpImage" [src]="newTpEmpImage" style="height:50px; border-radius:50%">
                   </div>
-
-                  <ion-button expand="block" size="small" class="ion-margin-top" (click)="addEmployee()" [disabled]="!newEmpName">
-                    <ion-icon slot="start" name="person-add-outline"></ion-icon>
-                    Aggiungi
-                  </ion-button>
+                  <ion-button expand="block" size="small" (click)="addTpEmployee()" [disabled]="!newTpEmpName">Aggiungi</ion-button>
                 </div>
 
-                <h5 class="ion-margin-top">Team Attuale:</h5>
-                <ng-container *ngFor="let s of startups$ | async">
-                  <ion-list *ngIf="s.id === selectedStartupId">
-                    <ion-item *ngFor="let emp of s.employees">
-                      <ion-avatar slot="start">
-                        <img [src]="emp.imageUrl || 'https://via.placeholder.com/40'">
-                      </ion-avatar>
-                      <ion-label>
-                        <h3>{{ emp.name }}</h3>
-                        <p>{{ emp.role }}</p>
-                      </ion-label>
-                      <ion-button slot="end" fill="clear" color="danger" (click)="deleteEmployee(emp)">
-                        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-                      </ion-button>
+                <ng-container *ngFor="let tp of thirdParties$ | async">
+                  <ion-list *ngIf="tp.id === selectedThirdPartyId">
+                    <ion-item *ngFor="let emp of tp.employees">
+                      <ion-avatar slot="start"><img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'"></ion-avatar>
+                      <ion-label><h3>{{ emp.name }}</h3><p>{{ emp.role }}</p></ion-label>
+                      <ion-button slot="end" fill="clear" color="danger" (click)="deleteTpEmployee(emp)"><ion-icon name="trash-outline" slot="icon-only"></ion-icon></ion-button>
                     </ion-item>
-                    <div *ngIf="!s.employees.length" class="ion-text-center">
-                      <small>Nessun dipendente.</small>
-                    </div>
                   </ion-list>
                 </ng-container>
-
               </div>
             </ion-card-content>
           </ion-card>
         </ion-col>
-
       </ion-row>
-
-      <ion-row>
-        <ion-col size="12">
-          <h3>Riepilogo Startup</h3>
-          <ion-list>
-            <ion-item *ngFor="let s of startups$ | async">
-              <ion-avatar slot="start">
-                <img [src]="s.logoUrl || 'https://via.placeholder.com/50'" />
-              </ion-avatar>
-              <ion-label>
-                <h2>{{ s.name }}</h2>
-                <p>Dipendenti: {{ s.employees.length || 0 }}</p>
-              </ion-label>
-              <ion-button fill="clear" color="danger" (click)="deleteStartup(s.id!)">
-                <ion-icon name="trash-outline"></ion-icon>
-              </ion-button>
-            </ion-item>
-          </ion-list>
-        </ion-col>
-      </ion-row>
-
     </ion-grid>
   </div>
 

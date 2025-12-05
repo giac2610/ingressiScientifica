@@ -50,6 +50,11 @@ export interface ActiveEmployeeResult {
   startup: Startup;
 }
 
+export interface Reason { id?: string; text: string; } // Per "Ospiti" (Motivazioni)
+export interface Supplier { id?: string; name: string; } // Per "Fornitori"
+// Utenti Terzi è identica a Startup come struttura
+export interface ThirdParty { id?: string; name: string; logoUrl?: string; employees: Employee[]; }
+
 @Injectable({
   providedIn: 'root'
 })
@@ -278,6 +283,33 @@ async checkOutGuest(guest: Guest) {
     return deleteDoc(docRef);
   }
 
+  // 1. Modifica dati Startup (Nome, Logo, Descrizione)
+  async updateStartup(startupId: string, data: Partial<Startup>) {
+    const ref = doc(this.firestore, 'startups', startupId);
+    return updateDoc(ref, data);
+  }
+
+  // 2. Modifica dati Dipendente (Trova il vecchio e lo sostituisce col nuovo)
+  async updateEmployeeDetails(startupId: string, oldEmp: Employee, newEmp: Employee) {
+    const startupRef = doc(this.firestore, 'startups', startupId);
+    
+    // Leggi array attuale
+    const snapshot = await getDoc(startupRef);
+    if (!snapshot.exists()) throw new Error("Startup non trovata");
+    const employees = (snapshot.data() as Startup).employees || [];
+
+    // Trova e sostituisci
+    const updatedEmployees = employees.map(e => {
+      // Confrontiamo per nome e ruolo (o potremmo usare un ID se lo avessimo)
+      if (e.name === oldEmp.name && e.role === oldEmp.role) {
+        return { ...newEmp, status: e.status, lastEntryTime: e.lastEntryTime }; // Mantieni lo stato IN/OUT
+      }
+      return e;
+    });
+
+    return updateDoc(startupRef, { employees: updatedEmployees });
+  }
+
   // Aggiorna lo stato del dipendente DENTRO l'array della startup
   async updateEmployeeStatus(startupId: string, employeeName: string, newStatus: 'IN' | 'OUT') {
     const startupRef = doc(this.firestore, 'startups', startupId);
@@ -308,4 +340,82 @@ async checkOutGuest(guest: Guest) {
     // 3. Sovrascrivi l'array nel database
     return updateDoc(startupRef, { employees: updatedEmployees });
   }
+
+  // ==========================================
+  // GESTIONE MOTIVAZIONI (Per Ospiti)
+  // ==========================================
+  getReasons(): Observable<Reason[]> {
+    const q = query(collection(this.firestore, 'reasons'), orderBy('text'));
+    return this.getCollectionData<Reason>(q);
+  }
+  async addReason(text: string) {
+    return addDoc(collection(this.firestore, 'reasons'), { text });
+  }
+  async deleteReason(id: string) {
+    return deleteDoc(doc(this.firestore, 'reasons', id));
+  }
+
+  // ==========================================
+  // GESTIONE FORNITORI
+  // ==========================================
+  getSuppliers(): Observable<Supplier[]> {
+    const q = query(collection(this.firestore, 'suppliers'), orderBy('name'));
+    return this.getCollectionData<Supplier>(q);
+  }
+  async addSupplier(name: string) {
+    return addDoc(collection(this.firestore, 'suppliers'), { name });
+  }
+  async deleteSupplier(id: string) {
+    return deleteDoc(doc(this.firestore, 'suppliers', id));
+  }
+
+  // ==========================================
+  // UTENTI TERZI
+  // ==========================================
+  getThirdParties(): Observable<ThirdParty[]> {
+    const q = query(collection(this.firestore, 'third_parties'), orderBy('name'));
+    return this.getCollectionData<ThirdParty>(q);
+  }
+  async addThirdParty(tp: ThirdParty) {
+    if (!tp.employees) tp.employees = [];
+    return addDoc(collection(this.firestore, 'third_parties'), tp);
+  }
+  async deleteThirdParty(id: string) {
+    return deleteDoc(doc(this.firestore, 'third_parties', id));
+  }
+  async updateThirdParty(id: string, data: Partial<ThirdParty>) {
+    return updateDoc(doc(this.firestore, 'third_parties', id), data);
+  }
+  
+  // Gestione Dipendenti Utenti Terzi
+  async addEmployeeToThirdParty(tpId: string, employee: Employee) {
+    const ref = doc(this.firestore, 'third_parties', tpId);
+    const newEmp = { ...employee, status: 'OUT' };
+    return updateDoc(ref, { employees: arrayUnion(newEmp) });
+  }
+  
+  async removeEmployeeFromThirdParty(tpId: string, employeeName: string) {
+    const ref = doc(this.firestore, 'third_parties', tpId);
+    const snapshot = await getDoc(ref);
+    if (!snapshot.exists()) return;
+    const employees = (snapshot.data() as ThirdParty).employees || [];
+    const updatedEmployees = employees.filter(e => e.name !== employeeName);
+    return updateDoc(ref, { employees: updatedEmployees });
+  }
+
+  async updateThirdPartyEmployeeStatus(tpId: string, employeeName: string, newStatus: 'IN' | 'OUT') {
+    // Stessa logica di updateEmployeeStatus per Startup ma sulla collezione third_parties
+    const ref = doc(this.firestore, 'third_parties', tpId);
+    const snapshot = await getDoc(ref);
+    if (!snapshot.exists()) return;
+    const employees = (snapshot.data() as ThirdParty).employees || [];
+    const updatedEmployees = employees.map(emp => {
+      if (emp.name === employeeName) {
+        return { ...emp, status: newStatus, lastEntryTime: new Date().toISOString() };
+      }
+      return emp;
+    });
+    return updateDoc(ref, { employees: updatedEmployees });
+  }
+
 }
