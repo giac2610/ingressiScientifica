@@ -298,7 +298,7 @@ ion-content {
   text-transform: none;
   // box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
   --box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
-  
+  overflow-y: auto;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -504,23 +504,5 @@ ion-content {
       font-size: 1.75em;
       z-index: 11;
   }
-  .guest-scroll-container {
-    /* Altezza fissa dell'area visibile */
-    height: 350px;       
-    /* Larghezza piena */
-    width: 100%;
-    
-    /* ABILITA SCROLL VERTICALE */
-    overflow-y: auto;
-    overflow-x: hidden;
-    
-    /* Maschera di sfumatura (opzionale, per effetto elegante) */
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
-    mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
-
-    /* Nascondi la barra di scorrimento (estetica) */
-    &::-webkit-scrollbar { display: none; }
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+ 
 }
