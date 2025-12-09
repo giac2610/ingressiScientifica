@@ -26,12 +26,27 @@ L'applicazione funge da duplice interfaccia:
 
 ## Tech Stack
 
-- **Framework:** Ionic 8 + Angular 19
+- **Framework:** Ionic 7.2.1 + Angular 20.3.10
 - **Architettura:** Angular Standalone Components (No NgModules)
 - **Database:** Firebase Firestore (v12)
 - **Logging:** Google Sheets (via Google Apps Script)
 - **Grafica:** WebGL nativo (GLSL Shaders) + SCSS
 - **Linguaggio:** TypeScript
+- **Node:** 22.21.1
+- **npm:** 10.9.4
+
+| Package | Version |
+|:------:|:--:|
+|@angular-devkit/architect   |    0.2003.10 |
+|@angular-devkit/build-angular|   20.3.10   |
+|@angular-devkit/core         |   20.3.10 |
+|@angular-devkit/schematics   |   20.3.10 |
+|@angular/cli                 |   20.3.10 |
+|@angular/fire                |   20.0.1 |
+|@schematics/angular          |   20.3.10 |
+|rxjs                         |   7.8.2 |
+|typescript                   |   5.9.3 |
+|zone.js                      |   0.15.1 |
 
 ## Architettura e Scelte Progettuali
 
