@@ -25,7 +25,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
   signatureImage: string | null = null; // Qui è da la firma in base64
 
   // Opzioni Menu a Tendina
-  // reasons: string[] = ['Visita Aziendale', 'Colloquio', 'Consegna Merci', 'Manutenzione', 'Altro'];
   reasons$ = this.dbService.getReasons();
   // Stato Modale
   isPrivacyModalOpen: boolean = false;
@@ -34,23 +33,22 @@ export class HomePage implements AfterViewInit, OnDestroy {
   private signaturePadElement: any;
   private signatureCtx: any;
   private isDrawing: boolean = false;
-
+  
+  // webGL variables
   private animationFrameId: number | undefined;
   private resizeListener: (() => void) | undefined;
-  
   private gl: WebGLRenderingContext | null = null;
   private program: WebGLProgram | null = null;
   private mouse = { x: 0, y: 0 };
   private circles: any[] = [];
   private width: number = 0;
   private height: number = 0;
-
+  // Definizione colori cerchi e numero cerchi (lunghezza array colori)
   private readonly circleColors = [
-    [75 / 255, 212 / 255, 242 / 255],   // 2. Secondary (#4bd4f2)
-    [136 / 255, 242 / 255, 242 / 255],  // 3. Tertiary (#88f2f2)
-    [255 / 255, 255 / 255, 255 / 255],  // 4. White (QUARTO COLORE)
+    [75 / 255, 212 / 255, 242 / 255],   // Secondary (#4bd4f2)
+    [136 / 255, 242 / 255, 242 / 255],  // Tertiary (#88f2f2)
+    [255 / 255, 255 / 255, 255 / 255],  // White (#ffffff)
   ];
-
   private readonly vertexSrc = `
     attribute vec2 a_position;
     varying vec2 v_uv;
@@ -60,7 +58,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
       gl_Position = vec4(a_position, 0.0, 1.0);
     }
   `;
-
   private readonly fragmentSrc = `
     precision highp float;
     varying vec2 v_uv;
@@ -74,7 +71,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
     void main(void) {
         vec2 st = v_uv * u_resolution;
 
-        // MODIFICATO: Sfondo scuro ma meno nero, con sfumature di blu/viola.
         vec3 topColor = vec3(200.0/255.0, 200.0/255.0, 200.0/255.0); // Medium Dark Blue
         vec3 bottomColor = vec3(255.0/255.0, 255.0/255.0, 255.0/255.0); // Dark Blue
         vec3 bgColor = mix(topColor, bottomColor, st.y / u_resolution.y);
@@ -99,14 +95,13 @@ export class HomePage implements AfterViewInit, OnDestroy {
           finalCirclesColor = weightedColorSum / fieldSum;
         }
 
-        // MODIFICATO: Abbassato l'esponente di pow() per un blend più morbido e ampio.
-        // Ciò rende il bianco e gli altri colori più diffusi.
         float intensity = pow(fieldSum, 1.7); // Era 1.4
         vec3 finalColor = mix(bgColor, finalCirclesColor, clamp(intensity, 0.0, 1.0));
         gl_FragColor = vec4(finalColor, 1.0);
     }
   `;
 
+  // GESTIONE VISTE 
   currentView:'main' | 'guestsHome' | 'guestsData' | 'startupEmployees' |'guestsExit' |'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera' | 'startupChoice' | 'startupAccess'| 'startupExit'  = 'main';
 
   setView(view: 'main' | 'guestsHome' | 'guestsData' | 'guestsExit' | 'startupEmployees' |  'utenti3'| 'startup' | 'fornitori' | 'startupChoice' | 'startupAccess'| 'startupExit'  ) {
@@ -114,9 +109,6 @@ export class HomePage implements AfterViewInit, OnDestroy {
       this.guestName = '';
       this.selectedReason = '';
       this.signatureImage = null;
-      
-      // Se avevi un metodo per pulire il canvas della firma, chiamalo qui
-      // this.clearSignature(); 
     }
     if (view == 'guestsExit'){
       this.activeGuests$ = this.dbService.getActiveGuests();
@@ -124,12 +116,14 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.currentView = view;
   }
 
-  setViewStartup(view: 'startupChoice'  ) {
-    this.currentView = view;
-  }
-
-  constructor(private renderer: Renderer2, private dbService: DatabaseService, private toastController: ToastController, private router: Router) {
+  constructor(
+    private renderer: Renderer2, 
+    private dbService: DatabaseService, 
+    private toastController: ToastController, 
+    private router: Router
+  ){
     addIcons({create, checkmarkCircle});
+
   }
 
   activeGuests$ = this.dbService.getActiveGuests();
@@ -148,7 +142,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   selectedStartup: Startup | null = null;
   employeeSearchTerm: string = ''; // Variabile per la ricerca dipendenti
 
-selectStartup(startup: Startup) {
+  selectStartup(startup: Startup) {
     this.selectedStartup = startup;
     this.employeeSearchTerm = ''; // Resetta la ricerca quando cambi azienda
     this.setView('startupEmployees');
@@ -168,8 +162,8 @@ selectStartup(startup: Startup) {
     this.employeeSearchTerm = event.detail.value || '';
   }
 
-async toggleEmployeeEntry(employee: Employee) {
-  this.dbService.updateEmployeeStatus(this.selectedStartup!.id!, employee.name, employee.status === 'IN' ? 'OUT' : 'IN');
+  async toggleEmployeeEntry(employee: Employee) {
+    this.dbService.updateEmployeeStatus(this.selectedStartup!.id!, employee.name, employee.status === 'IN' ? 'OUT' : 'IN');
 
     const isCurrentlyIn = employee.status === 'IN';
 
@@ -189,7 +183,7 @@ async toggleEmployeeEntry(employee: Employee) {
 
     let employees = this.selectedStartup.employees;
 
-    // 1. FILTRO RICERCA
+    // FILTRO RICERCA
     if (this.employeeSearchTerm && this.employeeSearchTerm.trim() !== '') {
       const term = this.employeeSearchTerm.toLowerCase();
       employees = employees.filter(emp => 
@@ -197,18 +191,18 @@ async toggleEmployeeEntry(employee: Employee) {
       );
     }
 
-    // 2. ORDINAMENTO (OUT prima, poi IN. A parità, alfabetico)
+    // ORDINAMENTO (OUT prima, poi IN. A parità, alfabetico)
     // Usiamo [...employees] per creare una copia e non rompere l'array originale
     return [...employees].sort((a, b) => {
-      const statusA = a.status || 'OUT'; // Se undefined è OUT
+      const statusA = a.status || 'OUT';
       const statusB = b.status || 'OUT';
 
-      // Criterio 1: Stato (OUT vince su IN)
+      // Stato (OUT vince su IN)
       if (statusA !== statusB) {
         return statusA === 'OUT' ? -1 : 1;
       }
 
-      // Criterio 2: Alfabetico
+      // Alfabetico
       return a.name.localeCompare(b.name);
     });
   }
@@ -221,7 +215,8 @@ async toggleEmployeeEntry(employee: Employee) {
       color
     }).then(toast => toast.present());
   }
-  // 3. FILTRO RICERCA OSPITI
+
+  // FILTRO RICERCA OSPITI
   filteredGuests$ = combineLatest([
     this.dbService.getActiveGuests(), // La tua lista originale dal service
     this.searchTerm$                  // Il testo digitato
@@ -237,6 +232,7 @@ async toggleEmployeeEntry(employee: Employee) {
     })
   );
 
+  // GESTIONE USCITA OSPITE
   doCheckout(guest: Guest) {
     this.dbService.checkOutGuest(guest);
   }
@@ -279,7 +275,7 @@ async toggleEmployeeEntry(employee: Employee) {
     for (let i = 0; i < numCircles; i++) {
       let radius = baseRadius;
       
-      // OPTIONAL: Rende il cerchio bianco leggermente più grande per dargli enfasi
+      // Rende il cerchio bianco leggermente più grande per dargli enfasi
       if (this.circleColors[i][0] === 1 && this.circleColors[i][1] === 1) { 
           radius *= 1.2; 
       }
@@ -415,7 +411,6 @@ async toggleEmployeeEntry(employee: Employee) {
   }
 
   // --- LOGICA MODALE E FIRMA ---
-
   openPrivacyModal() {
     this.isPrivacyModalOpen = true;
   }
@@ -449,7 +444,6 @@ async toggleEmployeeEntry(employee: Employee) {
   }
 
   // --- EVENTI DISEGNO (Mouse & Touch) ---
-
   startDrawing(ev: any) {
     this.isDrawing = true;
     const { x, y } = this.getCoordinates(ev);
@@ -517,6 +511,7 @@ async toggleEmployeeEntry(employee: Employee) {
       console.error(err);
     }
   }
+  
   navigateToBackoffice() {
     this.router.navigate(['/backoffice']);
   }

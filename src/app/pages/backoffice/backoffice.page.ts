@@ -30,14 +30,14 @@ export class BackofficePage {
 
   selectedSegment: string = 'startups';
   
-  // GESTIONE STARTUP
+  //  STARTUP
 
-  // -- SEZIONE SINISTRA (CREAZIONE) --
+  //  CREAZIONE STARTUP
   newStartupName: string = '';
   newStartupDesc: string = '';
   newStartupLogo: string = ''; 
 
-  // -- SEZIONE DESTRA (GESTIONE) --
+  //  GESTIONE STARTUP
   startupSearchTerm: string = '';
   
   // Startup Selezionata per l'editing
@@ -85,7 +85,7 @@ export class BackofficePage {
 
   // --- AZIONI STARTUP ---
 
-  // 1. Crea Nuova
+  // Crea Nuova
   async addStartup() {
     if (!this.newStartupName.trim()) return;
     await this.dbService.addStartup({
@@ -96,18 +96,18 @@ export class BackofficePage {
     this.newStartupName = ''; this.newStartupDesc = ''; this.newStartupLogo = '';
   }
 
-  // 2. Seleziona (Entra nel dettaglio)
+  // Seleziona (Entra nel dettaglio)
   selectStartup(s: Startup) {
     this.selectedStartup = { ...s }; // Crea una copia per l'editing sicuro
     this.resetEmployeeForm();
   }
 
-  // 3. Deseleziona (Torna alla lista)
+  // Deseleziona (Torna alla lista)
   deselectStartup() {
     this.selectedStartup = null;
   }
 
-  // 4. Salva Modifiche Startup (Edit)
+  // Salva Modifiche Startup (Edit)
   async updateStartup() {
     if (!this.selectedStartup || !this.selectedStartup.id) return;
     await this.dbService.updateStartup(this.selectedStartup.id, {
@@ -117,7 +117,7 @@ export class BackofficePage {
     alert('Startup aggiornata!');
   }
 
-  // 5. Elimina Startup
+  // Elimina Startup
   deleteStartup(id: string) {
     if(confirm('Eliminare definitivamente questa startup e tutti i dipendenti?')) {
       this.dbService.deleteStartup(id);
@@ -125,8 +125,7 @@ export class BackofficePage {
     }
   }
 
-  // --- AZIONI DIPENDENTI ---
-
+  // --- AZIONI DIPENDENTI STARTUP---
   // Prepara il form per la modifica
   editEmployee(emp: Employee) {
     this.editingEmployee = emp; // Salviamo chi stiamo modificando
@@ -173,6 +172,12 @@ export class BackofficePage {
     }
   }
 
+  checkEmployeeOut(employee: Employee, startup: Startup) {
+    if(confirm('Confermi l\'uscita del dipendente?')) {
+      this.dbService.updateEmployeeStatus(startup.id!, employee.name, 'OUT');
+    }
+  }
+
   // --- DRAG & DROP ---
   async onDrop(event: DragEvent, target: string) {
     event.preventDefault();
@@ -196,11 +201,8 @@ export class BackofficePage {
     reader.readAsDataURL(file);
   }
 
-  checkEmployeeOut(employee: Employee, startup: Startup) {
-    if(confirm('Confermi l\'uscita del dipendente?')) {
-      this.dbService.updateEmployeeStatus(startup.id!, employee.name, 'OUT');
-    }
-  }
+
+
   // --- AZIONI OSPITI ---
   async checkOut(guest: Guest) {
     if(confirm(`Confermi l'uscita di ${guest.name}?`)) {
@@ -223,6 +225,7 @@ export class BackofficePage {
     await this.dbService.addReason(this.newReasonText);
     this.newReasonText = '';
   }
+
   async deleteReason(id: string) {
     if(confirm('Eliminare motivazione?')) this.dbService.deleteReason(id);
   }
@@ -243,17 +246,21 @@ export class BackofficePage {
     await this.dbService.addThirdParty({ name: this.newThirdPartyName, logoUrl: this.newThirdPartyLogo, employees: [] });
     this.newThirdPartyName = ''; this.newThirdPartyLogo = '';
   }
+
   async deleteThirdParty(id: string) {
     if(confirm('Eliminare Utente Terzo?')) this.dbService.deleteThirdParty(id);
   }
+
   async addTpEmployee() {
     if (!this.selectedThirdPartyId || !this.newTpEmpName) return;
     const emp: Employee = { name: this.newTpEmpName, role: this.newTpEmpRole, imageUrl: this.newTpEmpImage };
     await this.dbService.addEmployeeToThirdParty(this.selectedThirdPartyId, emp);
     this.newTpEmpName = ''; this.newTpEmpRole = ''; this.newTpEmpImage = '';
   }
+
   async deleteTpEmployee(emp: Employee) {
     if (!this.selectedThirdPartyId) return;
     if(confirm('Rimuovere persona?')) this.dbService.removeEmployeeFromThirdParty(this.selectedThirdPartyId, emp.name);
   }
+
 }
