@@ -1,16 +1,16 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonSegment, IonSegmentButton, 
   IonLabel, IonList, IonItem, IonInput, IonButton, IonIcon, IonCard, IonCardContent,
   IonGrid, IonRow, IonCol, IonAvatar, IonBadge, IonSelect, IonSelectOption, 
-  IonTextarea, IonSearchbar, IonCardHeader, IonCardTitle 
+  IonTextarea, IonSearchbar, IonCardHeader, IonCardTitle
 } from '@ionic/angular/standalone';
 import { DatabaseService, Startup, Guest, Employee, Reason, Supplier, ThirdParty } from 'src/app/services/database';
 import { Observable, combineLatest, map, BehaviorSubject } from 'rxjs';
 import { addIcons } from 'ionicons';
-import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploadOutline, personAddOutline, createOutline, arrowBackOutline, saveOutline, settingsOutline, cartOutline, briefcaseOutline } from 'ionicons/icons';
+import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploadOutline, personAddOutline, createOutline, arrowBackOutline, saveOutline, settingsOutline, cartOutline, briefcaseOutline, listOutline, eyeOutline, codeSlashOutline, listCircleOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-backoffice',
@@ -26,9 +26,27 @@ import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploa
   ]
 })
 export class BackofficePage {
+
+  private _privacyEditor: ElementRef | undefined;
+
+  @ViewChild('privacyEditor') set privacyEditor(content: ElementRef) {
+    if(content) {
+      this._privacyEditor = content;
+      // Appena l'elemento appare nell'HTML, iniettiamo il testo
+      if (this.privacyText) {
+        this._privacyEditor.nativeElement.innerHTML = this.privacyText;
+      }
+    }
+  }
+
+  get privacyEditor(): ElementRef | undefined {
+    return this._privacyEditor;
+  }
+
   private dbService = inject(DatabaseService);
 
   selectedSegment: string = 'startups';
+  privacyText: string = '';
   
   //  STARTUP
 
@@ -74,9 +92,31 @@ export class BackofficePage {
   newTpEmpImage: string = '';
 
   constructor() {
-    addIcons({peopleOutline,settingsOutline,businessOutline,cartOutline,briefcaseOutline,logOutOutline,cloudUploadOutline,arrowBackOutline,saveOutline,createOutline,trashOutline,personAddOutline});
+    addIcons({peopleOutline,settingsOutline,businessOutline,cartOutline,briefcaseOutline,logOutOutline,cloudUploadOutline,arrowBackOutline,saveOutline,createOutline,trashOutline,listOutline,listCircleOutline,eyeOutline,codeSlashOutline,personAddOutline});
+  // Carica il testo attuale all'avvio
+    this.dbService.getPrivacyText().subscribe(text => {
+      this.privacyText = text;
+      // Se l'editor è pronto e il testo è diverso, aggiornalo.
+      // Questo succede solo al caricamento iniziale o se cambia nel DB.
+      if (this.privacyEditor && this.privacyEditor.nativeElement.innerHTML !== text) {
+        this.privacyEditor.nativeElement.innerHTML = text;
+      }
+    });
   }
 
+format(command: string, value?: string) {
+    document.execCommand(command, false, value);
+    
+    // Aggiorna subito la variabile
+    if (this._privacyEditor) {
+      this.privacyText = this._privacyEditor.nativeElement.innerHTML;
+    }
+  }
+
+  onEditorInput(event: any) {
+    this.privacyText = event.target.innerHTML;
+  }
+  
   // Getter per filtrare le startup nella vista a griglia
   filterStartups(startups: Startup[]): Startup[] {
     if (!this.startupSearchTerm) return startups;
@@ -270,6 +310,17 @@ export class BackofficePage {
   async checkTpEmployeeOut(employee: Employee, thirdParty: ThirdParty) {
     if(confirm('Confermi l\'uscita della persona?')) {
       this.dbService.updateTpEmployeeStatus(thirdParty.id!, employee.name, 'OUT');
+    }
+  }
+
+  // Funzione di salvataggio
+  async savePrivacy() {
+    try {
+      await this.dbService.savePrivacyText(this.privacyText);
+      alert('Privacy aggiornata con successo!');
+    } catch (err) {
+      console.error(err);
+      alert('Errore nel salvataggio.');
     }
   }
 }

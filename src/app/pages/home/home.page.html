@@ -396,18 +396,13 @@
       </ion-header>
       
       <ion-content class="ion-padding">
-        <div class="privacy-text">
-          <h3>Informativa sulla Sicurezza</h3>
-          <p>
-            Dichiaro di aver preso visione delle norme di sicurezza vigenti all'interno della struttura Scientifica...
-            (Inserisci qui tutto il testo legale necessario).
-          </p>
-          <p>
-            Accetto il trattamento dei dati personali ai fini della registrazione degli accessi...
-          </p>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Expedita, voluptas quasi corporis ratione voluptatibus, quia eum quos distinctio ipsa dolorem reiciendis adipisci totam beatae id vero molestias nisi alias quidem!
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus, dignissimos. Temporibus ipsa laudantium, quidem quia libero ratione quibusdam repellat corporis sint amet ipsam tenetur esse earum molestias praesentium ea voluptatem!
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam, eum soluta? Ipsum, libero numquam delectus aut quae repellat, ratione accusamus adipisci, doloribus repellendus tenetur reiciendis quis quod? Quos, praesentium omnis.
+        <div>
+          <ng-container *ngIf="privacyText$ | async as text; else loadingPrivacy">
+            <div [innerHTML]="text" class="privacy-text"></div>
+          </ng-container>
+          <ng-template #loadingPrivacy>
+            <p>Caricamento informativa in corso...</p>
+          </ng-template>
         </div>
 
         <div class="signature-area">

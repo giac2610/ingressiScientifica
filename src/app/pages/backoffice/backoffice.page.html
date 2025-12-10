@@ -327,6 +327,57 @@
             </ion-card-content>
           </ion-card>
         </ion-col>
+        <ion-col size="12" size-md="6">
+          <ion-card class="editor-card">
+            <ion-card-header>
+              <ion-card-title>Informativa Privacy</ion-card-title>
+            </ion-card-header>
+
+            <ion-card-content>
+              
+              <div class="formatting-toolbar">
+                <div class="tool-group">
+                  <ion-button size="small" fill="clear" (click)="format('formatBlock', 'H3')"><b>H3</b></ion-button>
+                  <ion-button size="small" fill="clear" (click)="format('formatBlock', 'H4')"><b>H4</b></ion-button>
+                  <ion-button size="small" fill="clear" (click)="format('formatBlock', 'P')" title="Paragrafo Normale">P</ion-button>
+                </div>
+                
+                <div class="separator"></div>
+
+                <div class="tool-group">
+                  <ion-button size="small" fill="clear" (click)="format('bold')"><b>B</b></ion-button>
+                  <ion-button size="small" fill="clear" (click)="format('italic')"><i>I</i></ion-button>
+                  <ion-button size="small" fill="clear" (click)="format('underline')"><u>U</u></ion-button>
+                  <ion-button size="small" fill="clear" (click)="format('strikeThrough')"><s>S</s></ion-button>
+                </div>
+
+                <div class="separator"></div>
+
+                <div class="tool-group">
+                  <ion-button size="small" fill="clear" (click)="format('insertUnorderedList')"><ion-icon name="list-outline"></ion-icon></ion-button>
+                  <ion-button size="small" fill="clear" (click)="format('insertOrderedList')"><ion-icon name="list-circle-outline"></ion-icon></ion-button>
+                </div>
+              </div>
+
+              <p style="font-size: 0.75em; color: #888; margin: 5px 0;">
+                Scrivi direttamente qui sotto. Il testo apparirà così nell'app.
+              </p>
+
+              <div 
+                #privacyEditor
+                class="visual-editor" 
+                contenteditable="true"
+                (input)="onEditorInput($event)">
+              </div>
+
+              <ion-button expand="block" class="ion-margin-top" (click)="savePrivacy()">
+                <ion-icon slot="start" name="save-outline"></ion-icon>
+                Salva Modifiche
+              </ion-button>
+
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
       </ion-row>
     </ion-grid>
   </div>

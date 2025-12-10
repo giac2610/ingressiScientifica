@@ -135,3 +135,73 @@
   align-items: center;
   margin-bottom: 10px;
 }
+
+/* src/app/pages/backoffice/backoffice.page.scss */
+
+.editor-card {
+  overflow: visible; /* Per il segment nell'header */
+}
+
+/* --- TOOLBAR STYLES --- */
+/* Toolbar (Ricicliamo lo stile precedente) */
+.formatting-toolbar {
+  display: flex;
+  align-items: center;
+  background: #f4f5f8;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px 8px 0 0; /* Arrotondato solo sopra */
+  padding: 4px;
+  border-bottom: none; /* Si unisce all'editor */
+  flex-wrap: wrap;
+
+  .tool-group { display: flex; align-items: center; }
+  .separator { width: 1px; height: 24px; background: #ccc; margin: 0 8px; }
+  
+  ion-button {
+    --padding-start: 8px; --padding-end: 8px;
+    height: 32px; margin: 0; color: #444;
+    &:hover { background: rgba(0,0,0,0.05); border-radius: 4px; }
+  }
+}
+
+/* EDITOR VISUALE */
+.visual-editor {
+  min-height: 350px;
+  max-height: 500px;
+  overflow-y: auto;
+  
+  /* Aspetto "Foglio" */
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 0 0 8px 8px; /* Arrotondato sotto */
+  padding: 20px;
+  
+  /* Tipografia */
+  font-family: sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+  
+  /* Comportamento */
+  outline: none; /* Rimuove il bordo blu di focus standard */
+  
+  /* Stili interni per rispecchiare la Home Page */
+  h3 {     margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: var(--ion-color-primary);
+    font-weight: 600;
+  }
+  h4 { color: #666; font-size: 1rem; margin-top: 15px; font-weight: bold; }
+  p { margin-bottom: 10px; }
+  ul, ol { padding-left: 20px; margin-bottom: 10px; }
+  
+  /* Quando è in focus, evidenzia leggermente il bordo */
+  &:focus {
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 0 1px var(--ion-color-primary-tint);
+  }
+}
+
+
+

@@ -6,6 +6,7 @@ import {
   Firestore, 
   collection, 
   addDoc, 
+  setDoc,
   updateDoc, 
   deleteDoc,
   doc, 
@@ -74,6 +75,9 @@ export interface ThirdParty {
 export interface ActiveThirdPartyEmployeeResult {
   employee: Employee;
   thirdParty: ThirdParty;
+}
+export interface AppConfig {
+  privacyText?: string;
 }
 @Injectable({
   providedIn: 'root'
@@ -574,4 +578,28 @@ export class DatabaseService {
       error: (e) => console.error('Errore log sheet fornitore', e)
     });
   }
+
+  // ==========================================
+  // CONFIGURAZIONE GLOBALE (Privacy, ecc.)
+  // ==========================================
+
+  getPrivacyText(): Observable<string> {
+    // Usiamo una collezione 'config' e un documento fisso 'main'
+    const docRef = doc(this.firestore, 'config', 'main');
+    return new Observable(observer => {
+      const unsubscribe = onSnapshot(docRef, (snap) => {
+        const data = snap.data() as AppConfig;
+        // Ritorna il testo o una stringa vuota se non esiste
+        observer.next(data?.privacyText || '');
+      });
+      return () => unsubscribe();
+    });
+  }
+
+  async savePrivacyText(text: string) {
+    const docRef = doc(this.firestore, 'config', 'main');
+    // setDoc con merge: true crea il documento se non esiste o aggiorna solo il campo
+    return setDoc(docRef, { privacyText: text }, { merge: true });
+  }
+
 }

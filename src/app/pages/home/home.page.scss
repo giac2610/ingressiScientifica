@@ -189,17 +189,42 @@ ion-content {
   margin-left: 10px;
 }
 
-/* Stile del Modale */
 .privacy-text {
-  max-height: 200px;
+  max-height: 180px;
   overflow-y: auto;
   background: #f9f9f9;
-  padding: 15px;
+  padding: 20px;
   border-radius: 8px;
   border: 1px solid #eee;
   margin-bottom: 20px;
-  font-size: 0.9em;
   color: #333;
+
+  /* STILI PER IL CONTENUTO HTML DINAMICO */
+  /* Poiché l'HTML viene iniettato dinamicamente, dobbiamo stilizzare i tag figli */
+  
+  ::ng-deep h3, h3 { /* ::ng-deep serve se Angular incapsula gli stili */
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: var(--ion-color-primary);
+    font-weight: 600;
+  }
+
+  ::ng-deep p, p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-size: 0.9rem;
+  }
+
+  ::ng-deep ul, ul {
+    padding-left: 20px;
+    margin-bottom: 10px;
+  }
+  
+  ::ng-deep li, li {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+  }
 }
 
 .signature-area {

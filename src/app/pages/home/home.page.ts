@@ -28,7 +28,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   reasons$ = this.dbService.getReasons();
   // Stato Modale
   isPrivacyModalOpen: boolean = false;
-  
+  privacyText$= this.dbService.getPrivacyText();
   // Variabili per il disegno
   private signaturePadElement: any;
   private signatureCtx: any;
