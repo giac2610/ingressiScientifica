@@ -19,7 +19,7 @@
         <ion-card (click)="setView('startup')">
           Utenti Startup
         </ion-card>
-        <ion-card (click)="setView('utenti3')">
+        <ion-card (click)="setView('thirdParties')">
           Utenti Terzi
         </ion-card>
       </ion-row>
@@ -27,14 +27,14 @@
         <ion-card (click)="setView('guestsHome')">
           Visitatori
         </ion-card>
-        <ion-card (click)="setView('fornitori')">
+        <ion-card (click)="setView('fornitoriHome')">
           Fornitori
         </ion-card>
       </ion-row>
     </ion-grid>
   </div>
 
-  <!-- STARTUP -->
+  <!-- SCELTA STARTUP -->
   <div class="menu-wrapper" [class.active]="currentView === 'startup'">
     <div class="vertical-scroll-container">
       <ion-grid class="center-grid">
@@ -137,7 +137,7 @@
     </ion-grid>
   </div>
 
-  <!-- GUEST - ACCESSO -->
+  <!-- GUEST ACCESSO -->
   <div class="menu-wrapper" [class.active]="currentView === 'guestsData'">
     <ion-card class="input-card">
           <ion-card-header>
@@ -216,6 +216,173 @@
     </ion-card>
   </div>
 
+  <!-- FORNITORI -->
+  <div class="menu-wrapper" [class.active]="currentView === 'fornitoriHome'">
+        <ion-grid class="center-grid">
+      <ion-row>
+        <ion-card (click)="setView('fornitoriAccess')">
+          Accesso
+        </ion-card>
+        <ion-card (click)="setView('fornitoriExit')">
+          Uscita
+        </ion-card>
+      </ion-row>
+    </ion-grid>
+  </div>
+  <!-- ACCESSO FORNITORI -->
+  <div class="menu-wrapper" [class.active]="currentView === 'fornitoriAccess'">
+    <div class="vertical-scroll-container">
+      <ion-grid class="center-grid">
+        <ion-row class="startup-row">
+          @for (sup of supplier$ | async; track sup.id) {
+            <ion-col size="6">
+              
+              <ion-card 
+                (click)="checkInSupplier(sup)" 
+                class="startup-card"
+                [style.--background]="'rgba(255,255,255,0.8)'"
+                style="background-origin: content-box; padding: 20px;">
+                
+                <ion-card-content style="color: #333; font-weight: bold; font-size: 1.2em;">
+                  {{ sup.name }}
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          } @empty {
+            <ion-col size="12">
+              <p style="color: white;">Nessun fornitore trovato.</p>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    </div>
+
+  </div>
+  <!-- USCITA FORNITORI -->
+  <div class="menu-wrapper" [class.active]="currentView === 'fornitoriExit'">
+    <ion-card class="fixed-header-card">
+      <ion-card-header>
+        <ion-card-title>Fornitori Presenti</ion-card-title>
+        
+        <ion-searchbar 
+          placeholder="Cerca fornitore..." 
+          animated="true"
+          debounce="300"
+          (ionInput)="handleSupplierSearch($event)">
+        </ion-searchbar>
+
+      </ion-card-header>
+
+      <ion-card-content>
+        <ion-list>
+          @for (sup of filteredSuppliers$ | async; track sup.id) {
+            <ion-item>
+              <ion-label>
+                <h2>{{ sup.name }}</h2>
+                <p> Ingresso: {{ sup.lastEntryTime | date:'shortTime' }}</p>
+              </ion-label>
+              
+              <ion-button slot="end" color="warning" (click)="doSupplierCheckout(sup)">
+                Uscita
+              </ion-button>
+            </ion-item>
+          } @empty {
+            <ion-item>
+              <ion-label class="ion-text-center">
+                <p>Nessun fornitore trovato.</p>
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+  <!-- DIPENDENT UTENTI TERZI -->
+  <div class="menu-wrapper" [class.active]="currentView === 'thirdParties'">
+    <div class="vertical-scroll-container">
+      <ion-grid class="center-grid">
+        <ion-row class="startup-row">
+          @for (tp of thirdPartie$ | async; track tp.id) {
+            <ion-col size="6">
+              
+              <ion-card 
+                (click)="selectThirdParty(tp)" 
+                class="startup-card"
+                [style.--background]="tp.logoUrl ? 'url(' + tp.logoUrl + ') no-repeat center/contain' : 'rgba(255,255,255,0.8)'"
+                style="background-origin: content-box; padding: 20px;">
+                
+                <ion-card-content *ngIf="!tp.logoUrl" style="color: #333; font-weight: bold; font-size: 1.2em;">
+                  {{ tp.name }}
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          } @empty {
+            <ion-col size="12">
+              <p style="color: white;">Nessun utente terzo trovato.</p>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    </div>
+  </div>
+  <div class="menu-wrapper" [class.active]="currentView === 'thirdPartyEmployees'">
+    <ion-card class="input-card" style="max-width: 700px;">
+      <ion-card-header>
+        <ion-card-title>
+          {{ selectedThirdPartie?.name }} - Dipendenti
+        </ion-card-title>
+        <ion-searchbar 
+          placeholder="Cerca dipendente..." 
+          animated="true"
+          debounce="300"
+          (ionInput)="handleTpEmployeeSearch($event)">
+        </ion-searchbar>
+      </ion-card-header>
+
+      <ion-card-content>
+        <ng-container *ngIf="activeTpEmployeeResult$ | async as ActiveTpEmployeeResult">
+          <ion-grid>
+            <ion-row class="employees-row">
+              @for (emp of filteredTpEmployees; track emp.name) {
+                <ion-col size="6" size-sm="4">
+                  <div 
+                    class="employee-badge" 
+                    [class.is-present]="emp.status === 'IN'"
+                    (click)="toggleTpEmployee(emp)">
+                    
+                    <ion-avatar class="emp-avatar">
+                      <img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+                    </ion-avatar>
+                    
+                    <div class="emp-info">
+                      <strong>{{ emp.name }}</strong>
+                    </div>
+
+                    <ion-badge [color]= "emp.status === 'IN' ? 'success' : 'medium'" style="margin-top: 5px;">
+                      {{ emp.status === 'IN'  ? 'PRESENTE' : 'ENTRA' }}
+                    </ion-badge>
+
+                  </div>
+
+                </ion-col>
+              } @empty {
+                <ion-col>
+                  <p>Nessun dipendente registrato per questa azienda.</p>
+                </ion-col>
+              }
+            </ion-row>
+          </ion-grid>
+
+        </ng-container>
+
+        <ion-button fill="clear" (click)="setView('thirdParties')" color="medium" expand="block">
+          Torna agli Utenti Terzi
+        </ion-button>
+
+      </ion-card-content>
+    </ion-card>
+  </div>
   <!-- PRIVACY MODAL -->
   <ion-modal [isOpen]="isPrivacyModalOpen" (didDismiss)="closePrivacyModal()" (didPresent)="onModalDidPresent()">
     <ng-template>

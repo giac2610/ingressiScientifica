@@ -62,7 +62,7 @@ export class BackofficePage {
   // -- FORNITORI --
   newSupplierName: string = '';
   suppliers$ = this.dbService.getSuppliers();
-
+  activeSuppliers$ = this.dbService.getActiveSuppliers();
   // -- UTENTI TERZI (Logica identica a Startup) --
   newThirdPartyName: string = '';
   newThirdPartyLogo: string = '';
@@ -239,11 +239,15 @@ export class BackofficePage {
   async deleteSupplier(id: string) {
     if(confirm('Eliminare fornitore?')) this.dbService.deleteSupplier(id);
   }
-
+  doSupplierCheckout(supplier: Supplier) {
+    if(confirm(`Confermi l'uscita del fornitore ${supplier.name}?`)) {
+      this.dbService.updateSupplierStatus(supplier);
+    }
+  }
   // --- AZIONI UTENTI TERZI  ---
   async addThirdParty() {
     if (!this.newThirdPartyName) return;
-    await this.dbService.addThirdParty({ name: this.newThirdPartyName, logoUrl: this.newThirdPartyLogo, employees: [] });
+    await this.dbService.addThirdParty({ name: this.newThirdPartyName, logoUrl: this.newThirdPartyLogo, employees: []});
     this.newThirdPartyName = ''; this.newThirdPartyLogo = '';
   }
 
@@ -263,4 +267,9 @@ export class BackofficePage {
     if(confirm('Rimuovere persona?')) this.dbService.removeEmployeeFromThirdParty(this.selectedThirdPartyId, emp.name);
   }
 
+  async checkTpEmployeeOut(employee: Employee, thirdParty: ThirdParty) {
+    if(confirm('Confermi l\'uscita della persona?')) {
+      this.dbService.updateTpEmployeeStatus(thirdParty.id!, employee.name, 'OUT');
+    }
+  }
 }

@@ -57,22 +57,6 @@ ion-content {
   align-items: center;
   height: 100%;
 }
-
-// .menu-wrapper{
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   min-height: calc(100svh - 120px);
-//   padding: 16px;
-//   text-align: center;
-  
-//   /* Blur effetto vetro smerigliato */
-//   // background: rgba(255, 255, 255, 0.05); 
-//   backdrop-filter: blur(4px);
-//   -webkit-backdrop-filter: blur(4px);
-//   position: relative;
-//   z-index: 10;
-// }
 /* --- STILE BASE (Vale per tutti) --- */
 .menu-wrapper {
   position: absolute;
@@ -103,7 +87,7 @@ ion-content {
   
   /* ESEMPIO: Voglio i bottoni allineati a sinistra invece che al centro */
   align-items: flex-start; 
-  padding-left: 50px;
+  padding-left: 30px;
 }
 /* --- STILE SPECIFICO PER LA CARD DEL FORM (Sovrascrive quello dei menu) --- */
 .menu-wrapper .input-card {
@@ -303,47 +287,17 @@ ion-content {
   align-items: center !important;
   justify-content: center !important;
   padding: 14px 24px !important; 
-  margin: 24px;
+  margin: 13px;
   font-size: 1.75em;
   z-index: 11;
 
   
 }
 
-/* --- CONTENITORE SCROLL VERTICALE --- */
-// .vertical-scroll-container {
-//   /* Definisci un'altezza massima per attivare lo scroll */
-//   max-height: 65vh; 
-//   width: 100%;
-//   max-width: 900px; /* Limita larghezza su schermi grandi */
-  
-//   /* Abilita scroll verticale */
-//   overflow-y: auto;
-//   overflow-x: hidden;
-  
-//   /* EFFETTO OROLOGIO / SFUMATURA */
-//   /* Sfuma i bordi sopra e sotto per dare l'idea di continuità */
-//   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-//   mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  
-//   /* Padding per non tagliare le ombre delle card */
-//   padding: 20px 10px;
-
-//   /* Nascondere la Scrollbar (Chrome, Safari, Opera) */
-//   &::-webkit-scrollbar {
-//     display: none;
-//   }
-  
-//   /* Nascondere la Scrollbar (Firefox, IE, Edge) */
-//   -ms-overflow-style: none;  
-//   scrollbar-width: none;  
-// }
-
-
 /* --- CONTENITORE SCROLL VERTICALE (Effetto Orologio) --- */
 .vertical-scroll-container {
   max-height: 60vh; /* Altezza massima visibile */
-  width: 100%;
+  width: 85%;
   overflow-y: auto;   /* Abilita scroll verticale */
   overflow-x: hidden; /* Disabilita scroll orizzontale */
   
@@ -373,7 +327,7 @@ ion-content {
 
 .startup-row ion-col {
   /* Assicura che le colonne abbiano spazio tra loro tramite padding */
-  padding: 8px; 
+  padding: 4px; 
   display: flex;
   justify-content: center;
 }
@@ -398,7 +352,7 @@ ion-content {
 /* Modifica la grid per adattarsi */
 .center-grid {
   width: 100%;
-  padding-bottom: 40px; /* Spazio extra in fondo per lo scroll */
+  padding-bottom: 30px; /* Spazio extra in fondo per lo scroll */
 }
 
 .employees-row {      /* Obbliga ad andare a capo */

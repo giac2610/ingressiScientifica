@@ -5,7 +5,7 @@ import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 }
 import { IonContent, IonSelect, ToastController, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonAvatar, IonBadge, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DatabaseService, Guest, Startup, Employee } from 'src/app/services/database';
+import { DatabaseService, Guest, Startup, Employee, Supplier, ThirdParty, Reason } from 'src/app/services/database';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
 @Component({
@@ -102,9 +102,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
   `;
 
   // GESTIONE VISTE 
-  currentView:'main' | 'guestsHome' | 'guestsData' | 'startupEmployees' |'guestsExit' |'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera' | 'startupChoice' | 'startupAccess'| 'startupExit'  = 'main';
+  currentView:'main' | 'guestsHome' | 'fornitoriHome' | 'thirdParties' | 'thirdPartyEmployees' | 'fornitoriAccess' | 'fornitoriExit' | 'guestsData' | 'startupEmployees' |'guestsExit' |'utenti3'| 'startup' | 'fornitori' | 'exolab' | 'loto' | 'libera' | 'startupChoice' | 'startupAccess'| 'startupExit'  = 'main';
 
-  setView(view: 'main' | 'guestsHome' | 'guestsData' | 'guestsExit' | 'startupEmployees' |  'utenti3'| 'startup' | 'fornitori' | 'startupChoice' | 'startupAccess'| 'startupExit'  ) {
+  setView(view: 'main' | 'guestsHome' | 'guestsData' | 'fornitoriHome' | 'thirdParties' | 'thirdPartyEmployees'  | 'fornitoriAccess' | 'fornitoriExit' | 'guestsExit' | 'startupEmployees' |  'utenti3'| 'startup' | 'fornitori' | 'startupChoice' | 'startupAccess'| 'startupExit'  ) {
     if (view === 'guestsData') { 
       this.guestName = '';
       this.selectedReason = '';
@@ -112,6 +112,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
     if (view == 'guestsExit'){
       this.activeGuests$ = this.dbService.getActiveGuests();
+    }
+    if (view == 'fornitoriExit'){
+      this.activeSuppliers$ = this.dbService.getActiveSuppliers();
     }
     this.currentView = view;
   }
@@ -128,6 +131,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   activeGuests$ = this.dbService.getActiveGuests();
   ActiveEmployeeResult$ = this.dbService.getAllActiveEmployees();
+  activeTpEmployeeResult$ = this.dbService.getAllActiveThirdPartyEmployees();
   searchTerm$= new BehaviorSubject<string>('');
   startup$:Observable<Startup[]> = this.dbService.getStartups().pipe(
     tap(updatedStartups => {
@@ -141,13 +145,27 @@ export class HomePage implements AfterViewInit, OnDestroy {
   );
   selectedStartup: Startup | null = null;
   employeeSearchTerm: string = ''; // Variabile per la ricerca dipendenti
+  // var fornitori
+  supplier$ = this.dbService.getSuppliers();
+  selectedSupplier: Supplier | null = null;
+  activeSuppliers$ = this.dbService.getActiveSuppliers();
+  supplierSearchTerm$ = new BehaviorSubject<string>('') ;
+
+  // var terze parti
+  thirdPartie$ = this.dbService.getThirdParties();
+  selectedThirdPartie: ThirdParty | null = null;
 
   selectStartup(startup: Startup) {
     this.selectedStartup = startup;
     this.employeeSearchTerm = ''; // Resetta la ricerca quando cambi azienda
     this.setView('startupEmployees');
   }
-  // 2. GESTIONE INGRESSO/USCITA DIPENDENTE
+
+  selectThirdParty(thirdParty: ThirdParty) {
+    this.selectedThirdPartie = thirdParty;
+    this.setView('thirdPartyEmployees');
+  }
+  // GESTIONE INGRESSO/USCITA DIPENDENTE
   // Cerca se il dipendente è già nella lista degli ospiti attivi
   getActiveEntry(employee: Employee, activeGuests: Guest[]): Guest | undefined {
     // Cerchiamo una corrispondenza per Nome e Azienda (usiamo 'reason' per salvare il nome azienda)
@@ -157,7 +175,12 @@ export class HomePage implements AfterViewInit, OnDestroy {
     );
   }
 
-// home.page.ts
+    // GESTIONE USCITA OSPITE
+  doCheckout(guest: Guest) {
+    this.dbService.checkOutGuest(guest);
+  }
+
+// EMPLOYEE
   handleEmployeeSearch(event: any) {
     this.employeeSearchTerm = event.detail.value || '';
   }
@@ -173,7 +196,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     const color = isCurrentlyIn ? 'warning' : 'success';
 
       this.showToast(message, color);
-      setTimeout(() => this.setView('startup'), 1000);
+      setTimeout(() => this.setView('startup'), 200);
   }
 
   get filteredEmployees(): Employee[] {
@@ -207,6 +230,69 @@ export class HomePage implements AfterViewInit, OnDestroy {
     });
   }
 
+  // SUPPLIERS
+  selectSupplier(supplier: Supplier) {
+    this.selectedSupplier = supplier;
+    this.setView('fornitori');
+  }
+
+  handleSupplierSearch(event: any) {
+    this.supplierSearchTerm$.next(event.detail.value || '');
+  }
+
+  doSupplierCheckout(supplier: Supplier) {
+    this.dbService.updateSupplierStatus(supplier);
+    // this.dbService.checkOutSupplier(supplier);
+  }
+
+  // THIRD PARTIES
+  handleTpEmployeeSearch(event: any) {
+    this.employeeSearchTerm = event.detail.value || '';
+  }
+
+  get filteredTpEmployees(): Employee[] {
+    if (!this.selectedThirdPartie || !this.selectedThirdPartie.employees) {
+      return [];
+    }
+
+    let employees = this.selectedThirdPartie.employees;
+    
+    if (this.employeeSearchTerm && this.employeeSearchTerm.trim() !== '') {
+      const term = this.employeeSearchTerm.toLowerCase();
+      employees = employees.filter(emp => 
+        emp.name.toLowerCase().includes(term)
+      );
+    }
+
+    return [...employees].sort((a, b) => {
+      const statusA = a.status || 'OUT';
+      const statusB = b.status || 'OUT';
+
+      // Stato (OUT vince su IN)
+      if (statusA !== statusB) {
+        return statusA === 'OUT' ? -1 : 1;
+      }
+
+      // Alfabetico
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  async toggleTpEmployee(employee: Employee) {
+    console.log("Dipendente: ", employee);
+    // console.log("Terza Parte selezionata: ", this.selectedStartup);
+    this.dbService.updateTpEmployeeStatus(this.selectedThirdPartie!.id!, employee.name, employee.status === 'IN' ? 'OUT' : 'IN');
+
+    const isCurrentlyIn = employee.status === 'IN';
+
+    const message = isCurrentlyIn 
+      ? `Arrivederci ${employee.name}` 
+      : `Benvenuto ${employee.name}`;
+    const color = isCurrentlyIn ? 'warning' : 'success';
+
+      this.showToast(message, color);
+      setTimeout(() => this.setView('main'), 200);
+  }
   // UTILITY
   showToast(message: string, color: 'success' | 'warning' | 'danger') {
     this.toastController.create({
@@ -232,10 +318,20 @@ export class HomePage implements AfterViewInit, OnDestroy {
     })
   );
 
-  // GESTIONE USCITA OSPITE
-  doCheckout(guest: Guest) {
-    this.dbService.checkOutGuest(guest);
-  }
+  filteredSuppliers$ = combineLatest([
+    this.dbService.getActiveSuppliers(), // La tua lista originale dal service
+    this.supplierSearchTerm$                  // Il testo digitato
+  ]).pipe(
+    map(([suppliers, term]) => {
+      // Se non c'è testo, restituisci tutto
+      if (!term.trim()) return suppliers;
+      
+      // Altrimenti filtra per nome (case insensitive)
+      return suppliers.filter(supplier => 
+        supplier.name.toLowerCase().includes(term.toLowerCase())
+      );
+    })
+  );
 
   ngAfterViewInit() {
     this.initWebGL();
@@ -511,7 +607,15 @@ export class HomePage implements AfterViewInit, OnDestroy {
       console.error(err);
     }
   }
-  
+
+  async checkInSupplier(supplier: Supplier) {
+    console.log('Checking in supplier:', supplier, 'with ID:', supplier.id);
+    this.dbService.updateSupplierStatus(supplier);{
+      this.showToast(`Fornitore ${supplier.name} registrato in ingresso`, 'success');
+      this.setView('main');
+    }
+  }
+
   navigateToBackoffice() {
     this.router.navigate(['/backoffice']);
   }

@@ -38,7 +38,8 @@
   <div *ngIf="selectedSegment === 'presenze'">
     <h2 class="section-title">Persone Attualmente Presenti</h2>
     <ion-row class="lists-container">
-      <ion-col size="12" size-md="6" class="bordered-col">
+      <!-- COLONNA OSPITI -->
+      <ion-col size="6" size-md="3" class="bordered-col">
         <h2 class="section-title">Ospiti</h2>
         <ion-list>
           <ion-item *ngFor="let guest of activeGuests$ | async">
@@ -62,7 +63,8 @@
           </ion-item>
         </ion-list> 
       </ion-col>
-      <ion-col size="12" size-md="6" class="bordered-col">
+      <!-- COLONNA STARTUP -->
+      <ion-col size="6" size-md="3" class="bordered-col">
         <h2 class="section-title">Dipendenti</h2>
         <ion-list>
           <ion-item *ngFor="let item of activeEmployees$ | async">
@@ -78,15 +80,57 @@
               </p>
             </ion-label>
 
-            <ion-button slot="end" color="warning" fill="outline" 
-              (click)="checkEmployeeOut(item.employee, item.startup)">
-              USCITA
+            <ion-button slot="end" color="warning" fill="outline" (click)="checkEmployeeOut(item.employee, item.startup)">
+                <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
             </ion-button>
           </ion-item>
         </ion-list> 
       </ion-col>
+      <!-- COLONNA FORNITORI -->
+      <ion-col size="6" size-md="3" class="bordered-col">
+        <h2 class="section-title">Fornitori</h2>
+        <ion-list>
+          <ion-item *ngFor ="let sup of activeSuppliers$ | async">
+            <ion-label>
+              <h2>{{ sup.name }}</h2>
+              <p> Ingresso: {{ sup.lastEntryTime | date:'shortTime' }}</p>
+            </ion-label>
+            
+            <ion-badge slot="end" color="success">IN</ion-badge>
+            
+            <ion-button slot="end" fill="outline" color="warning" (click)="doSupplierCheckout(sup)">
+              <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+            </ion-button>
+          </ion-item>
+        </ion-list>
+      </ion-col>
+      <!-- COLONNA UTENTI TERZI -->
+      <ion-col size="6" size-md="3" class="bordered-col">
+        <h2 class="section-title">Utenti Terzi</h2>
+        <ion-list>
+          <ng-container *ngFor="let tp of thirdParties$ | async">
+            <ng-container *ngFor="let emp of tp.employees">
+              <ion-item *ngIf="emp.status === 'IN'">
+                <ion-avatar slot="start">
+                  <img [src]="emp.imageUrl || 'assets/default-avatar.png'" />
+                </ion-avatar>
+                
+                <ion-label>
+                  <h2>{{ emp.name }}</h2>
+                  <p>{{ tp.name }}</p>
+                  <p style="font-size: 0.8em; color: gray;">
+                    Ingresso: {{ emp.lastEntryTime | date:'HH:mm' }}
+                  </p>
+                </ion-label>
 
-
+                <ion-button slot="end" color="warning" fill="outline" (click)="checkTpEmployeeOut(emp, tp)">
+                    <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+                </ion-button>
+              </ion-item>
+            </ng-container>
+          </ng-container>
+        </ion-list>
+      </ion-col>
     </ion-row>
 
 
