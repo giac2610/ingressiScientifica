@@ -240,13 +240,15 @@
               <ion-card 
                 (click)="sup.status !== 'IN' ? checkInSupplier(sup) : showToast( sup.name + ' ha già effettuato l\'accesso', 'warning')"
                 class="startup-card"
-                [style.--background]="'rgba(255,255,255,0.8)'"
+                [style.--background]="sup.logoUrl ? 'url(' + sup.logoUrl + ') no-repeat center/contain' : 'rgba(235,235,235,0.8)'"
                 style="background-origin: content-box; padding: 20px;">
 
                 
                 <ion-card-content style="color: #333; font-weight: bold; font-size: 1.2em;">
                   <div *ngIf="sup.status === 'IN'" slot="end" class="live-indicator"></div>
-                  {{ sup.name }}
+                  @if (!sup.logoUrl){
+                    {{ sup.name }}
+                  }
                 </ion-card-content>
               </ion-card>
             </ion-col>
