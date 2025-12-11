@@ -113,6 +113,7 @@
     align-items: center;
     justify-content: center;
     background: #ffffff; /* Sfondo bianco per risaltare l'icona */
+    
 
     .icon-placeholder {
       color: #999; /* Colore grigio per l'icona */
@@ -177,7 +178,7 @@
   padding: 20px;
   
   /* Tipografia */
-  font-family: sans-serif;
+  // font-family: h;
   font-size: 1rem;
   line-height: 1.5;
   color: #333;
@@ -203,5 +204,34 @@
   }
 }
 
+/* --- INDICATORE LIVE (Glow Effect) --- */
+.live-indicator {
+  width: 9px;
+  height: 9px;
+  background-color: #2dd36f; /* Verde Ionic Success */
+  border-radius: 50%;
+  // margin-right: 5px; /* Spazio dal bottone uscita */
+  
+  /* Ombra statica base */
+  box-shadow: 0 0 0 rgba(45, 211, 111, 0.4);
+  
+  /* Animazione infinita */
+  animation: pulse-green 2s infinite;
+}
 
-
+@keyframes pulse-green {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(45, 211, 111, 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(45, 211, 111, 0); /* L'ombra si espande e svanisce */
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(45, 211, 111, 0);
+  }
+}

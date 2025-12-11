@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonSegment, IonSegmentButton, 
   IonLabel, IonList, IonItem, IonInput, IonButton, IonIcon, IonCard, IonCardContent,
-  IonGrid, IonRow, IonCol, IonAvatar, IonBadge, IonSelect, IonSelectOption, 
+  IonGrid, IonRow, IonCol, IonAvatar, IonSelect, IonSelectOption, 
   IonTextarea, IonSearchbar, IonCardHeader, IonCardTitle
 } from '@ionic/angular/standalone';
 import { DatabaseService, Startup, Guest, Employee, Reason, Supplier, ThirdParty } from 'src/app/services/database';
@@ -21,7 +21,7 @@ import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploa
     CommonModule, FormsModule, 
     IonContent, IonHeader, IonTitle, IonToolbar, IonSegment, IonSegmentButton, 
     IonLabel, IonList, IonItem, IonInput, IonButton, IonIcon, IonCard, IonCardContent,
-    IonGrid, IonRow, IonCol, IonAvatar, IonBadge, IonTextarea,
+    IonGrid, IonRow, IonCol, IonAvatar, IonTextarea,
     IonSearchbar, IonCardHeader, IonCardTitle, IonSelect, IonSelectOption
   ]
 })
@@ -81,7 +81,11 @@ export class BackofficePage {
   newSupplierName: string = '';
   suppliers$ = this.dbService.getSuppliers();
   activeSuppliers$ = this.dbService.getActiveSuppliers();
-  // -- UTENTI TERZI (Logica identica a Startup) --
+  selectedSupplier: Supplier | null = null;
+  supplierSearchTerm: string = '';
+  allSuppliers$ = this.dbService.getSuppliers()  // -- UTENTI TERZI (Logica identica a Startup) --
+  newSupplierLogo: string = '';;
+
   newThirdPartyName: string = '';
   newThirdPartyLogo: string = '';
   selectedThirdPartyId: string = ''; // Per il dropdown
@@ -237,6 +241,7 @@ format(command: string, value?: string) {
       if (target === 'employee') this.empFormImage = res;
       if (target === 'thirdParty') this.newThirdPartyLogo = res;
       if (target === 'tpEmployee') this.newTpEmpImage = res;
+      if (target === 'newSupplier') this.newSupplierLogo = res;
     };
     reader.readAsDataURL(file);
   }
@@ -271,10 +276,14 @@ format(command: string, value?: string) {
   }
 
   // --- AZIONI FORNITORI ---
+  // Crea Nuova
   async addSupplier() {
-    if(!this.newSupplierName) return;
-    await this.dbService.addSupplier(this.newSupplierName);
-    this.newSupplierName = '';
+    if (!this.newSupplierName.trim()) return;
+    await this.dbService.addSupplier({
+      name: this.newSupplierName,
+      logoUrl: this.newSupplierLogo
+    });
+    this.newSupplierName = ''; this.newSupplierLogo = '';
   }
   async deleteSupplier(id: string) {
     if(confirm('Eliminare fornitore?')) this.dbService.deleteSupplier(id);
@@ -283,6 +292,30 @@ format(command: string, value?: string) {
     if(confirm(`Confermi l'uscita del fornitore ${supplier.name}?`)) {
       this.dbService.updateSupplierStatus(supplier);
     }
+  }
+    filterSuppliers(supplier: Supplier[]): Supplier[] {
+    if (!this.startupSearchTerm) return supplier;
+    return supplier.filter(s => s.name.toLowerCase().includes(this.startupSearchTerm.toLowerCase()));
+  }
+    // Seleziona (Entra nel dettaglio)
+  selectSupplier(s: Supplier) {
+    this.selectedSupplier = { ...s }; // Crea una copia per l'editing sicuro
+    this.resetEmployeeForm();
+  }
+
+  // Deseleziona (Torna alla lista)
+  deselectSupplier() {
+    this.selectedSupplier = null;
+  }
+
+    // Salva Modifiche Startup (Edit)
+  async updateSupplier() {
+    if (!this.selectedSupplier || !this.selectedSupplier.id) return;
+    await this.dbService.updateSupplier(this.selectedSupplier.id, {
+      name: this.selectedSupplier.name,
+      logoUrl: this.selectedSupplier.logoUrl
+    });
+    alert('Startup aggiornata!');
   }
   // --- AZIONI UTENTI TERZI  ---
   async addThirdParty() {

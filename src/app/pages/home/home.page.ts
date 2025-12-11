@@ -178,6 +178,10 @@ export class HomePage implements AfterViewInit, OnDestroy {
     // GESTIONE USCITA OSPITE
   doCheckout(guest: Guest) {
     this.dbService.checkOutGuest(guest);
+    setTimeout(() => {
+      this.showToast(`Arrivederci ${guest.name}`, 'warning');
+      this.setView('main');
+    }, 350);
   }
 
 // EMPLOYEE
@@ -196,7 +200,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     const color = isCurrentlyIn ? 'warning' : 'success';
 
       this.showToast(message, color);
-      setTimeout(() => this.setView('startup'), 200);
+      setTimeout(() => this.setView('main'), 350);
   }
 
   get filteredEmployees(): Employee[] {
@@ -243,6 +247,10 @@ export class HomePage implements AfterViewInit, OnDestroy {
   doSupplierCheckout(supplier: Supplier) {
     this.dbService.updateSupplierStatus(supplier);
     // this.dbService.checkOutSupplier(supplier);
+    setTimeout(() => {
+      this.showToast(`Arrivederci ${supplier.name}`, 'warning');
+      this.setView('main');
+    }, 350);
   }
 
   // THIRD PARTIES
@@ -291,7 +299,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     const color = isCurrentlyIn ? 'warning' : 'success';
 
       this.showToast(message, color);
-      setTimeout(() => this.setView('main'), 200);
+      setTimeout(() => this.setView('main'), 350);
   }
   // UTILITY
   showToast(message: string, color: 'success' | 'warning' | 'danger') {
@@ -610,10 +618,11 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   async checkInSupplier(supplier: Supplier) {
     console.log('Checking in supplier:', supplier, 'with ID:', supplier.id);
-    this.dbService.updateSupplierStatus(supplier);{
+    this.dbService.updateSupplierStatus(supplier, 'IN');
+    setTimeout(() => {
       this.showToast(`Fornitore ${supplier.name} registrato in ingresso`, 'success');
       this.setView('main');
-    }
+    }, 350)
   }
 
   navigateToBackoffice() {
