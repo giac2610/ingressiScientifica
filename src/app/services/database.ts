@@ -355,7 +355,7 @@ export class DatabaseService {
         return { 
           ...emp, 
           status: newStatus,
-          lastEntryTime: new Date().toISOString() // Aggiorna timestamp
+          lastEntryTime: new Date().toISOString() 
         };
       }
       return emp;
@@ -448,38 +448,40 @@ export class DatabaseService {
     });
   }
 
+// CORREZIONE: Gestisce sia il toggle automatico che l'impostazione manuale
   async updateSupplierStatus(supplier: Supplier, newStatus?: 'IN' | 'OUT') {
     if (!supplier.id) {
       console.error('Supplier ID mancante');
       return;
     }
-    if (typeof newStatus === undefined) {
+
+    // 1. SE newStatus NON È PASSATO, CALCOLALO (Toggle)
+    // Se è 'IN' diventa 'OUT', altrimenti diventa 'IN'
+    if (!newStatus) {
       newStatus = supplier.status === 'IN' ? 'OUT' : 'IN';
     }
+
     const action = newStatus === 'IN' ? 'INGRESSO' : 'USCITA';
-    console.log('Actionsupplier: ', action);
     const now = new Date().toISOString();
 
     try {
-      // Aggiorna SOLO questo documento (senza leggere o mappare nulla prima)
       const supplierRef = doc(this.firestore, 'suppliers', supplier.id);
-      const snapshot = await getDoc(supplierRef);
-      if (!snapshot.exists()) {
-        console.error('Fornitore non trovato in Firestore');
-        return;
-      }
-      const supplierData = snapshot.data() as Supplier;
-
-      const updatedSupplier: Supplier = {
-        ...supplierData,
+      
+      // 2. AGGIORNA FIRESTORE
+      await updateDoc(supplierRef, {
         status: newStatus,
         lastEntryTime: now
-      };
-      // Invia Log a Excel
-      this.logSupplierActionToSheet(updatedSupplier, action); // Assicurati di avere questa funzione (vedi sotto)
+      });
+
+      // 3. LOGGA SU EXCEL (Aggiorniamo l'oggetto locale solo per il log)
+      const supplierPerLog = { ...supplier, status: newStatus };
+      // Non usiamo await qui per non bloccare l'interfaccia, è un "fire and forget"
+      this.logSupplierActionToSheet(supplierPerLog, action);
 
     } catch (err) {
-      console.error('Errore toggle fornitore', err);
+      console.error('Errore aggiornamento fornitore:', err);
+      // Rilanciamo l'errore per vederlo in console se serve
+      throw err;
     }
   }
 
