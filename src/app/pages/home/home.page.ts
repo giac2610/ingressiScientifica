@@ -37,7 +37,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   //PRIACY VARIABLES
   privacyPdfUrl: SafeResourceUrl | null = null;
   privacyPdfSrc: string | null = null;
-  private pdfObjectUrl: string | null = null; // Per pulire la memoria dopo
+  pdfObjectUrl: string | null = null; // Per pulire la memoria dopo
 
   checkConsense1: boolean = false; // "Dichiaro di aver letto..."
   checkConsense2: boolean = false; // "Accetto il trattamento..."
@@ -140,23 +140,22 @@ export class HomePage implements AfterViewInit, OnDestroy {
     private sanitizer: DomSanitizer
   ){
     addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline});
-    this.dbService.getAppConfig().subscribe(config => {
-      // Se c'è un URL, lo rendiamo sicuro per l'iframe
-      if (config.privacyPdfBase64) {
-        
-        // 1. Convertilo in Blob usando la funzione che abbiamo appena creato
-        const blob = this.dbService.base64ToBlob(config.privacyPdfBase64);
-        
-        // 2. Se c'era un vecchio URL, puliscilo per liberare memoria
-        if (this.pdfObjectUrl) {
-          URL.revokeObjectURL(this.pdfObjectUrl);
-        }
-
-        // 3. Crea il LINK "blob:..." e assegnalo
-        this.pdfObjectUrl = URL.createObjectURL(blob);
-        this.privacyPdfSrc = this.pdfObjectUrl;
-      }
-    });
+this.dbService.getAppConfig().subscribe(config => {
+  console.log("Configurazione arrivata:", config); // <--- CONTROLLA QUESTO
+  
+  if (config.privacyPdfBase64) {
+    console.log("Lunghezza stringa Base64:", config.privacyPdfBase64.length); // <--- DEVE ESSERE LUNGA
+    
+    const blob = this.dbService.base64ToBlob(config.privacyPdfBase64);
+    console.log("Blob creato:", blob); // <--- DEVE AVERE size > 0
+    
+    // ... resto del codice
+    this.pdfObjectUrl = URL.createObjectURL(blob);
+    console.log("URL Blob finale:", this.pdfObjectUrl); // <--- DEVE ESSERE tipo blob:http://...
+  } else {
+    console.warn("Nessun PDF trovato nel config!");
+  }
+});
   }
 
   activeGuests$ = this.dbService.getActiveGuests();
