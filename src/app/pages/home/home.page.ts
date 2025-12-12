@@ -37,6 +37,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   //PRIACY VARIABLES
   privacyPdfUrl: SafeResourceUrl | null = null;
   privacyPdfSrc: string | null = null;
+  private pdfObjectUrl: string | null = null; // Per pulire la memoria dopo
 
   checkConsense1: boolean = false; // "Dichiaro di aver letto..."
   checkConsense2: boolean = false; // "Accetto il trattamento..."
@@ -141,9 +142,19 @@ export class HomePage implements AfterViewInit, OnDestroy {
     addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline});
     this.dbService.getAppConfig().subscribe(config => {
       // Se c'è un URL, lo rendiamo sicuro per l'iframe
-      if (config.privacyPdfBase64) {
-        this.privacyPdfSrc = config.privacyPdfBase64;
-        // this.privacyPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(config.privacyPdfBase64);
+if (config.privacyPdfBase64) {
+        
+        // 1. Convertilo in Blob usando la funzione che abbiamo appena creato
+        const blob = this.dbService.base64ToBlob(config.privacyPdfBase64);
+        
+        // 2. Se c'era un vecchio URL, puliscilo per liberare memoria
+        if (this.pdfObjectUrl) {
+          URL.revokeObjectURL(this.pdfObjectUrl);
+        }
+
+        // 3. Crea il LINK "blob:..." e assegnalo
+        this.pdfObjectUrl = URL.createObjectURL(blob);
+        this.privacyPdfSrc = this.pdfObjectUrl;
       }
     });
   }
@@ -370,6 +381,9 @@ export class HomePage implements AfterViewInit, OnDestroy {
     }
     if (this.resizeListener) {
       window.removeEventListener("resize", this.resizeListener);
+    }
+    if (this.pdfObjectUrl) {
+      URL.revokeObjectURL(this.pdfObjectUrl);
     }
   }
 

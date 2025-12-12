@@ -114,7 +114,7 @@ export class BackofficePage {
     
     // 2. Controllo Peso (IMPORTANTE per non bloccare Firestore)
     // 900 KB = 900 * 1024 bytes
-    if (file.size > 900 * 1024) {
+    if (file.size > 700 * 1024) {
       alert(`File troppo grande (${(file.size / 1024 / 1024).toFixed(2)} MB). \nIl limite è 1MB. Comprimi il PDF.`);
       return;
     }

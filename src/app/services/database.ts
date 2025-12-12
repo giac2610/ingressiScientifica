@@ -113,6 +113,30 @@ export class DatabaseService {
     });
   }
 
+// Converte la stringa Base64 (salvata in Firestore) in un Blob reale
+  base64ToBlob(base64: string): Blob {
+    try {
+      // 1. Rimuovi l'intestazione "data:application/pdf;base64," se presente
+      const base64Clean = base64.split(',')[1] || base64;
+      
+      // 2. Decodifica la stringa
+      const byteCharacters = atob(base64Clean);
+      const byteNumbers = new Array(byteCharacters.length);
+      
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      
+      // 3. Ritorna il Blob (File)
+      return new Blob([byteArray], { type: 'application/pdf' });
+    } catch (e) {
+      console.error("Errore conversione PDF", e);
+      return new Blob([], { type: 'application/pdf' }); // Ritorna blob vuoto per non rompere tutto
+    }
+  }
+
   // ==========================================
   // GESTIONE OSPITI
   // ==========================================
