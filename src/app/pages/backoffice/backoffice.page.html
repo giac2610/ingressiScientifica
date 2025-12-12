@@ -330,50 +330,36 @@
           </ion-card>
         </ion-col>
         <ion-col size="12" size-md="6">
-          <ion-card class="editor-card">
+          <ion-card>
             <ion-card-header>
-              <ion-card-title>Informativa Privacy</ion-card-title>
+              <ion-card-title>Informativa Privacy (PDF)</ion-card-title>
             </ion-card-header>
-
             <ion-card-content>
-              
-              <div class="formatting-toolbar">
-                <div class="tool-group">
-                  <ion-button size="small" fill="clear" (click)="format('formatBlock', 'H3')"><b>H3</b></ion-button>
-                  <ion-button size="small" fill="clear" (click)="format('formatBlock', 'H4')"><b>H4</b></ion-button>
-                  <ion-button size="small" fill="clear" (click)="format('formatBlock', 'P')" title="Paragrafo Normale">P</ion-button>
-                </div>
-                
-                <div class="separator"></div>
-
-                <div class="tool-group">
-                  <ion-button size="small" fill="clear" (click)="format('bold')"><b>B</b></ion-button>
-                  <ion-button size="small" fill="clear" (click)="format('italic')"><i>I</i></ion-button>
-                  <ion-button size="small" fill="clear" (click)="format('underline')"><u>U</u></ion-button>
-                  <ion-button size="small" fill="clear" (click)="format('strikeThrough')"><s>S</s></ion-button>
-                </div>
-
-                <div class="separator"></div>
-
-                <div class="tool-group">
-                  <ion-button size="small" fill="clear" (click)="format('insertUnorderedList')"><ion-icon name="list-outline"></ion-icon></ion-button>
-                  <ion-button size="small" fill="clear" (click)="format('insertOrderedList')"><ion-icon name="list-circle-outline"></ion-icon></ion-button>
-                </div>
-              </div>
-
-              <p style="font-size: 0.75em; color: #888; margin: 5px 0;">
-                Scrivi direttamente qui sotto. Il testo apparirà così nell'app.
+              <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">
+                Carica il PDF che l'utente dovrà leggere. <br>
+                <strong>Attenzione:</strong> Max 1 MB.
               </p>
 
-              <div 
-                #privacyEditor
-                class="visual-editor" 
-                contenteditable="true"
-                (input)="onEditorInput($event)">
+              <div class="drop-zone" 
+                  (click)="pdfInput.click()" 
+                  (drop)="onDrop($event, 'privacyPdf')" 
+                  (dragover)="onDragOver($event)">
+                
+                <div *ngIf="!privacyPdf" class="placeholder">
+                  <ion-icon name="cloud-upload-outline" style="font-size: 40px;"></ion-icon>
+                  <p>Clicca o trascina il PDF qui</p>
+                </div>
+
+                <div *ngIf="privacyPdf" style="color: var(--ion-color-success);">
+                  <ion-icon name="document-text-outline" style="font-size: 50px;"></ion-icon>
+                  <p style="font-weight: bold; margin-top: 5px;">PDF Pronto per il salvataggio</p>
+                </div>
+
+                <input #pdfInput type="file" accept="application/pdf" (change)="onFileSelected($event)" style="display: none;">
               </div>
 
-              <ion-button expand="block" class="ion-margin-top" (click)="savePrivacy()">
-                <ion-icon slot="start" name="save-outline"></ion-icon>
+              <ion-button expand="block" (click)="savePrivacyPdf()" [disabled]="!privacyPdf">
+                <ion-icon name="save-outline" slot="start"></ion-icon>
                 Salva Modifiche
               </ion-button>
 

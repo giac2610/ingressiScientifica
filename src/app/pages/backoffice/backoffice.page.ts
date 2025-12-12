@@ -10,7 +10,7 @@ import {
 import { DatabaseService, Startup, Guest, Employee, Reason, Supplier, ThirdParty } from 'src/app/services/database';
 import { Observable, combineLatest, map, BehaviorSubject } from 'rxjs';
 import { addIcons } from 'ionicons';
-import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploadOutline, personAddOutline, createOutline, arrowBackOutline, saveOutline, settingsOutline, cartOutline, briefcaseOutline, listOutline, eyeOutline, codeSlashOutline, listCircleOutline } from 'ionicons/icons';
+import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploadOutline, personAddOutline, createOutline, arrowBackOutline, saveOutline, settingsOutline, cartOutline, briefcaseOutline, listOutline, eyeOutline, codeSlashOutline, listCircleOutline, informationCircleOutline, openOutline, documentTextOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-backoffice',
@@ -28,17 +28,10 @@ import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploa
 export class BackofficePage {
 
   private _privacyEditor: ElementRef | undefined;
+  privacyUrl: string = '';
+  
 
-  @ViewChild('privacyEditor') set privacyEditor(content: ElementRef) {
-    if(content) {
-      this._privacyEditor = content;
-      // Appena l'elemento appare nell'HTML, iniettiamo il testo
-      if (this.privacyText) {
-        this._privacyEditor.nativeElement.innerHTML = this.privacyText;
-      }
-    }
-  }
-
+  // deprecato
   get privacyEditor(): ElementRef | undefined {
     return this._privacyEditor;
   }
@@ -46,7 +39,7 @@ export class BackofficePage {
   private dbService = inject(DatabaseService);
 
   selectedSegment: string = 'startups';
-  privacyText: string = '';
+  privacyPdf: string = '';
   
   //  STARTUP
 
@@ -96,29 +89,42 @@ export class BackofficePage {
   newTpEmpImage: string = '';
 
   constructor() {
-    addIcons({peopleOutline,settingsOutline,businessOutline,cartOutline,briefcaseOutline,logOutOutline,cloudUploadOutline,arrowBackOutline,saveOutline,createOutline,trashOutline,listOutline,listCircleOutline,eyeOutline,codeSlashOutline,personAddOutline});
+    addIcons({peopleOutline,settingsOutline,businessOutline,cartOutline,briefcaseOutline,logOutOutline,cloudUploadOutline,arrowBackOutline,saveOutline,createOutline,trashOutline,documentTextOutline,informationCircleOutline,openOutline,listOutline,listCircleOutline,eyeOutline,codeSlashOutline,personAddOutline});
   // Carica il testo attuale all'avvio
-    this.dbService.getPrivacyText().subscribe(text => {
-      this.privacyText = text;
+    this.dbService.getAppConfig().subscribe(config => {
       // Se l'editor è pronto e il testo è diverso, aggiornalo.
       // Questo succede solo al caricamento iniziale o se cambia nel DB.
-      if (this.privacyEditor && this.privacyEditor.nativeElement.innerHTML !== text) {
-        this.privacyEditor.nativeElement.innerHTML = text;
+      if (config.privacyPdfBase64) {
+        this.privacyPdf = config.privacyPdfBase64;
       }
     });
   }
 
-format(command: string, value?: string) {
-    document.execCommand(command, false, value);
-    
-    // Aggiorna subito la variabile
-    if (this._privacyEditor) {
-      this.privacyText = this._privacyEditor.nativeElement.innerHTML;
-    }
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) this.handlePdfFile(file);
   }
 
-  onEditorInput(event: any) {
-    this.privacyText = event.target.innerHTML;
+  private handlePdfFile(file: File) {
+    // 1. Controllo Tipo
+    if (file.type !== 'application/pdf') {
+      alert('Carica solo file PDF.');
+      return;
+    }
+    
+    // 2. Controllo Peso (IMPORTANTE per non bloccare Firestore)
+    // 900 KB = 900 * 1024 bytes
+    if (file.size > 900 * 1024) {
+      alert(`File troppo grande (${(file.size / 1024 / 1024).toFixed(2)} MB). \nIl limite è 1MB. Comprimi il PDF.`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Questa stringa inizia con "data:application/pdf;base64,..."
+      this.privacyPdf = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   }
   
   // Getter per filtrare le startup nella vista a griglia
@@ -233,6 +239,18 @@ format(command: string, value?: string) {
   onDragOver(event: DragEvent) { event.preventDefault(); }
 
   private handleFile(file: File, target: string) {
+    if (target === 'privacyPdf') {
+      // 1. Controllo Tipo
+      if (file.type !== 'application/pdf') {
+        alert('Per favore carica solo file PDF.');
+        return;
+      }
+      // 2. Controllo Dimensione (Max 950KB per stare sicuri sotto il limite di 1MB)
+      if (file.size > 950 * 1024) {
+        alert(`File troppo grande (${(file.size / 1024 / 1024).toFixed(2)} MB). \nIl limite di Firestore è 1MB. Comprimi il PDF prima di caricarlo.`);
+        return;
+      }
+    }
     const reader = new FileReader();
     reader.onload = () => {
       const res = reader.result as string;
@@ -242,11 +260,21 @@ format(command: string, value?: string) {
       if (target === 'thirdParty') this.newThirdPartyLogo = res;
       if (target === 'tpEmployee') this.newTpEmpImage = res;
       if (target === 'newSupplier') this.newSupplierLogo = res;
+      if (target === 'privacyPdf') this.privacyPdf = res;
     };
     reader.readAsDataURL(file);
   }
 
-
+async savePrivacyPdf() {
+    if (!this.privacyPdf) return;
+    try {
+      await this.dbService.savePrivacyPdf(this.privacyPdf);
+      alert('PDF Privacy salvato con successo!');
+    } catch (e) {
+      console.error(e);
+      alert('Errore nel salvataggio. Riprova.');
+    }
+  }
 
   // --- AZIONI OSPITI ---
   async checkOut(guest: Guest) {
@@ -346,14 +374,4 @@ format(command: string, value?: string) {
     }
   }
 
-  // Funzione di salvataggio
-  async savePrivacy() {
-    try {
-      await this.dbService.savePrivacyText(this.privacyText);
-      alert('Privacy aggiornata con successo!');
-    } catch (err) {
-      console.error(err);
-      alert('Errore nel salvataggio.');
-    }
-  }
 }

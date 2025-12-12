@@ -78,7 +78,8 @@ export interface ActiveThirdPartyEmployeeResult {
   thirdParty: ThirdParty;
 }
 export interface AppConfig {
-  privacyText?: string;
+  privacyText?: string; // deprecato
+  privacyPdfBase64?: string;
 }
 @Injectable({
   providedIn: 'root'
@@ -620,23 +621,25 @@ export class DatabaseService {
   // CONFIGURAZIONE GLOBALE (Privacy, ecc.)
   // ==========================================
 
-  getPrivacyText(): Observable<string> {
+  getAppConfig(): Observable<AppConfig> {
     // Usiamo una collezione 'config' e un documento fisso 'main'
     const docRef = doc(this.firestore, 'config', 'main');
     return new Observable(observer => {
       const unsubscribe = onSnapshot(docRef, (snap) => {
         const data = snap.data() as AppConfig;
         // Ritorna il testo o una stringa vuota se non esiste
-        observer.next(data?.privacyText || '');
+        observer.next(data || {});
       });
       return () => unsubscribe();
     });
   }
 
-  async savePrivacyText(text: string) {
+
+  async savePrivacyPdf(base64: string) {
     const docRef = doc(this.firestore, 'config', 'main');
-    // setDoc con merge: true crea il documento se non esiste o aggiorna solo il campo
-    return setDoc(docRef, { privacyText: text }, { merge: true });
+    // Usa setDoc con merge:true per non sovrascrivere altri campi
+    const { setDoc } = await import('@angular/fire/firestore');
+    return setDoc(docRef, { privacyPdfBase64: base64 }, { merge: true });
   }
 
   // Helper: Converte URL immagine in Base64

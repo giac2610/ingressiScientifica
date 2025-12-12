@@ -1,18 +1,20 @@
 import { addIcons } from 'ionicons';
-import { create, checkmarkCircle } from 'ionicons/icons';
+import { create, checkmarkCircle, refreshOutline, linkOutline, documentTextOutline, alertCircleOutline } from 'ionicons/icons';
 import { ActiveEmployeeResult } from './../../services/database';
-import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2 } from '@angular/core';
-import { IonContent, IonSelect, ToastController, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonAvatar, IonBadge, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
+import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2, inject } from '@angular/core';
+import { IonContent, IonSelect, IonCheckbox, ToastController, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonAvatar, IonBadge, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatabaseService, Guest, Startup, Employee, Supplier, ThirdParty, Reason } from 'src/app/services/database';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { PdfViewerModule } from 'ng2-pdf-viewer';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
-  imports: [IonList, IonLabel, IonFooter, FormsModule, IonButtons, IonTitle, IonHeader, IonCol, IonToolbar, IonModal, IonIcon, IonItem, IonSelect, IonButton, IonSelectOption, IonCardHeader, IonInput, IonCardContent, IonCardTitle, IonCard, IonGrid, IonRow, IonContent, CommonModule, IonSearchbar, IonAvatar, IonBadge],
+  imports: [PdfViewerModule, IonList, IonLabel, IonFooter, IonCheckbox, FormsModule, IonButtons, IonTitle, IonHeader, IonCol, IonToolbar, IonModal, IonIcon, IonItem, IonSelect, IonButton, IonSelectOption, IonCardHeader, IonInput, IonCardContent, IonCardTitle, IonCard, IonGrid, IonRow, IonContent, CommonModule, IonSearchbar, IonAvatar, IonBadge],
 })
 
 export class HomePage implements AfterViewInit, OnDestroy {
@@ -28,7 +30,17 @@ export class HomePage implements AfterViewInit, OnDestroy {
   reasons$ = this.dbService.getReasons();
   // Stato Modale
   isPrivacyModalOpen: boolean = false;
-  privacyText$= this.dbService.getPrivacyText();
+  // deprecato
+  // privacyText$= this.dbService.getPrivacyText();
+  // private sanitizer = inject(DomSanitizer)
+  privacyUrlSafe: SafeResourceUrl | null = null;
+  //PRIACY VARIABLES
+  privacyPdfUrl: SafeResourceUrl | null = null;
+  privacyPdfSrc: string | null = null;
+
+  checkConsense1: boolean = false; // "Dichiaro di aver letto..."
+  checkConsense2: boolean = false; // "Accetto il trattamento..."
+  hasSigned: boolean = false;
   // Variabili per il disegno
   private signaturePadElement: any;
   private signatureCtx: any;
@@ -123,10 +135,17 @@ export class HomePage implements AfterViewInit, OnDestroy {
     private renderer: Renderer2, 
     private dbService: DatabaseService, 
     private toastController: ToastController, 
-    private router: Router
+    private router: Router,
+    private sanitizer: DomSanitizer
   ){
-    addIcons({create, checkmarkCircle});
-
+    addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline});
+    this.dbService.getAppConfig().subscribe(config => {
+      // Se c'è un URL, lo rendiamo sicuro per l'iframe
+      if (config.privacyPdfBase64) {
+        this.privacyPdfSrc = config.privacyPdfBase64;
+        // this.privacyPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(config.privacyPdfBase64);
+      }
+    });
   }
 
   activeGuests$ = this.dbService.getActiveGuests();
@@ -430,7 +449,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.updateCircles();
 
     this.gl!.viewport(0, 0, this.width, this.height);
-    this.gl!.clearColor(0, 0, 0, 1);
+    // this.gl!.clearColor(0, 0, 0, 1);
+    this.gl!.clearColor(1, 1, 1, 1);
     this.gl!.clear(this.gl!.COLOR_BUFFER_BIT);
 
     this.gl!.useProgram(this.program);
@@ -547,6 +567,20 @@ export class HomePage implements AfterViewInit, OnDestroy {
     this.signatureCtx.strokeStyle = '#000000';
   }
 
+  // RESET (Quando si chiude il modale o si finisce)
+  resetGuestForm() {
+    // ... tua logica esistente ...
+    this.checkConsense1 = false;
+    this.checkConsense2 = false;
+    this.hasSigned = false;
+    this.clearSignature();
+  }
+
+  // VALIDAZIONE PER IL BOTTONE
+  get canProceed(): boolean {
+    // Deve aver spuntato entrambi E aver firmato
+    return this.checkConsense1 && this.checkConsense2 && this.hasSigned;
+  }
   // --- EVENTI DISEGNO (Mouse & Touch) ---
   startDrawing(ev: any) {
     this.isDrawing = true;
@@ -560,6 +594,8 @@ export class HomePage implements AfterViewInit, OnDestroy {
     const { x, y } = this.getCoordinates(ev);
     this.signatureCtx.lineTo(x, y);
     this.signatureCtx.stroke();
+
+    this.hasSigned = true;
   }
 
   endDrawing() {
@@ -588,6 +624,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
       this.signatureCtx.clearRect(0, 0, this.signaturePadElement.width, this.signaturePadElement.height);
     }
     this.signatureImage = null;
+    this.hasSigned = false;
   }
 
   async acceptAndSign() {

@@ -400,13 +400,49 @@
       </ion-header>
       
       <ion-content class="ion-padding">
-        <div>
-          <ng-container *ngIf="privacyText$ | async as text; else loadingPrivacy">
-            <div [innerHTML]="text" class="privacy-text"></div>
+        <div class="pdf-viewer-container">
+  
+          <ng-container *ngIf="privacyPdfSrc; else noPdf">
+            <!-- <iframe [src]="privacyPdfUrl" type="application/pdf" width="100%" hieght="100%" title="Privacy Policy"></iframe> -->
+            <pdf-viewer
+              [src]="privacyPdfSrc"
+              [rotation]="0"
+              [original-size]="false" 
+              [show-all]="true"
+              [fit-to-page]="false"
+              [zoom]="1"
+              [zoom-scale]="'page-width'"
+              [stick-to-page]="false"
+              [render-text]="true"
+              [external-link-target]="'blank'"
+              [autoresize]="true"
+              [show-borders]="false"
+              style="display: block; width: 100%;"
+            ></pdf-viewer>
           </ng-container>
-          <ng-template #loadingPrivacy>
-            <p>Caricamento informativa in corso...</p>
+  
+          <ng-template #noPdf>
+            <div class="pdf-error">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <p>Nessuna informativa caricata</p>
+            </div>
           </ng-template>
+
+        </div>
+        <div class="privacy-checks ion-margin-top">
+          <ion-item lines="none" class="checkbox-item">
+            <ion-checkbox slot="start" [(ngModel)]="checkConsense1" aria-label="Consenso 1"></ion-checkbox>
+            <ion-label class="ion-text-wrap" style="font-size: 0.9em;">
+              Dichiaro di aver letto e compreso il vincolo di riservatezza e le conseguenze legali in caso di violazione.
+            </ion-label>
+          </ion-item>
+
+          <ion-item lines="none" class="checkbox-item">
+            <ion-checkbox slot="start" [(ngModel)]="checkConsense2" aria-label="Consenso 2"></ion-checkbox>
+            <ion-label class="ion-text-wrap" style="font-size: 0.9em;">
+              Accetto il trattamento dei dati personali per le finalità di sicurezza descritte.
+            </ion-label>
+          </ion-item>
         </div>
 
         <div class="signature-area">
@@ -419,6 +455,7 @@
           </canvas>
           
           <ion-button size="small" fill="outline" color="medium" (click)="clearSignature()">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
             Cancella Firma
           </ion-button>
         </div>
@@ -427,10 +464,12 @@
       <ion-footer>
         <ion-toolbar>
           <ion-row>
-
             <ion-col>
-              <ion-button expand="block" color="success" (click)="closePrivacyModal()">
-                Firmando accetti l'informativa
+                <ion-button expand="block" color="medium" (click)="closePrivacyModal()">Annulla</ion-button>
+            </ion-col>
+            <ion-col>
+              <ion-button expand="block" color="success" [disabled]="!canProceed" (click)="closePrivacyModal()">
+                Conferma Ingresso
               </ion-button>
             </ion-col>
           </ion-row>
