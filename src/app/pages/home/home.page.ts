@@ -142,7 +142,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline});
     this.dbService.getAppConfig().subscribe(config => {
       // Se c'è un URL, lo rendiamo sicuro per l'iframe
-if (config.privacyPdfBase64) {
+      if (config.privacyPdfBase64) {
         
         // 1. Convertilo in Blob usando la funzione che abbiamo appena creato
         const blob = this.dbService.base64ToBlob(config.privacyPdfBase64);
