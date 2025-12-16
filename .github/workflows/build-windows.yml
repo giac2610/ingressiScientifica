@@ -40,6 +40,8 @@ jobs:
 
       # 6️⃣ Build Electron Windows
       - name: Build Electron Windows
+        env: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd electron
           npm install
