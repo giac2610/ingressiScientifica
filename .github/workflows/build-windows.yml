@@ -1,19 +1,13 @@
-name: Build backoffice Win/macOS with Electron
+name: Build Backoffice (Win/Mac)
 
-# Esegue il workflow a ogni push su main o pull request
+# Si attiva quando fai push sulla branch 'backoffice'
 on:
   push:
     branches:
       - backoffice
-    tags:
-      - 'v*.*.*'
-
-  pull_request:
-    branches:
-      - backoffce
 
 permissions:
-  contents: write
+  contents: write # Fondamentale per creare la Release e caricare i file
 
 jobs:
   build-electron:
@@ -21,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # Puoi rimuovere macos-latest se non ti serve il Mac per ora
+        # Compila in parallelo su Windows e Mac
         os: [windows-latest, macos-latest]
 
     steps:
@@ -31,7 +25,7 @@ jobs:
         with:
           node-version: 20
 
-      # 1. Installa dipendenze globali
+      # 1. Installa dipendenze globali e del progetto Angular
       - name: Install Dependencies
         run: |
           npm ci
@@ -41,24 +35,23 @@ jobs:
       - name: Build Ionic App
         run: ionic build --prod --no-interactive
 
-      # 3. Copia la cartella www dentro Electron
+      # 3. Sincronizza la cartella www dentro Electron
       - name: Sync Capacitor Electron
         run: npx cap sync electron
 
-      # 4. WINDOWS: Compila e Crea Release
+      # 4. WINDOWS: Installa dipendenze Electron, Compila TS, Pacchettizza
       - name: Build Windows
         if: matrix.os == 'windows-latest'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token automatico
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd electron
           npm install
           npm run build
           npx electron-builder --win --config electron-builder.config.json -p always
 
-      # 5. MAC: Compila e Crea Release
-      # Nota: Senza certificato Apple a pagamento, l'app Mac sarà "non firmata"
-      # e richiederà click destro -> Apri per avviarsi la prima volta.
+      # 5. MAC: Installa dipendenze Electron, Compila TS, Pacchettizza
+      # Nota: Il file .dmg non sarà firmato (richiede rito xattr su Mac M1/M2/M3)
       - name: Build Mac
         if: matrix.os == 'macos-latest'
         env:
@@ -68,62 +61,14 @@ jobs:
           npm install
           npm run build
           npx electron-builder --mac --config electron-builder.config.json -p always
-# jobs:
-#   build-win:
-#     runs-on: windows-latest
 
-#     steps:
-#       # 1️⃣ Recupera il codice
-#       - uses: actions/checkout@v4
-
-#       # 2️⃣ Setup Node.js
-#       - uses: actions/setup-node@v4
-#         with:
-#           node-version: 20
-
-#       # 3️⃣ Installa dipendenze npm
-#       - name: Install dependencies
-#         run: npm ci
-
-#       # Install Ionic CLI
-#       - name: Install Ionic CLI
-#         run: npm install -g @ionic/cli
-
-#       # 4️⃣ Build Ionic app
-#       - name: Build Ionic App
-#         run: ionic build --no-interactive
-
-#       # 5️⃣ Sync Capacitor Electron
-#       - name: Sync Capacitor Electron
-#         run: npx cap sync electron
-
-#       # 6️⃣ Build Electron Windows
-#       - name: Build Electron Windows
-#         env: 
-#           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         run: |
-#           cd electron
-#           npm install
-#           npm run build
-#           npx electron-builder --win --config electron-builder.config.json
-
-#       # 7️⃣ Carica l’exe come artifact
-#       - name: Upload Windows executable
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: windows-exe
-#           path: |
-#             electron/dist/win-unpacked/
-#             electron/dist/*.exe
-
-#   release:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v4
-#       - name: Build Artifact
-#         run: echo ${{ github.sha }} > release_info.txt
-#       - name: Create GitHub Release
-#         uses: softprops/action-gh-release@v2
-#         if: startsWith(github.ref, 'refs/tags/')
-#         with:
-#           files: release_info.txt
+      # 6. (Opzionale ma utile) Carica i file anche negli Artefatti della Action
+      # Così se la release fallisce per qualche motivo, puoi scaricarli da qui.
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backoffice-${{ matrix.os }}
+          path: |
+            electron/dist/*.exe
+            electron/dist/*.dmg
+            electron/dist/*.zip
