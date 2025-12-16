@@ -1,0 +1,65 @@
+name: Build Android APK (Totem)
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Setup ambiente (Java è necessario per Android)
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 2. Installazione
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm install -g @ionic/cli
+
+      # 3. Compilazione Web
+      - name: Build Ionic App
+        run: ionic build --prod --no-interactive
+
+      # 4. Sincronizzazione cartella android
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      # 5. Compilazione APK con Gradle
+      # 'assembleRelease' crea l'APK. Senza keystore configurato, sarà "unsigned" 
+      # o firmato con chiave di debug, ma funzionante per installazione manuale.
+      - name: Build APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      # 6. Rinomina e Sposta l'APK per comodità
+      - name: Prepare APK for Release
+        run: |
+          # Trova l'APK generato (il percorso può variare leggermente)
+          find android/app/build/outputs/apk/debug -name "*.apk" -exec mv {} app-debug.apk \;
+
+      # 7. Pubblica su GitHub Releases
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app-debug.apk
+          tag_name: android-v${{ github.run_number }}
+          name: Android Release v${{ github.run_number }}
+          body: "Nuova versione Totem Android generata automaticamente."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
