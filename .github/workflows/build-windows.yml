@@ -44,7 +44,7 @@ jobs:
           cd electron
           npm install
           npm run build
-          npx electron-builder --win
+          npx electron-builder --win --config electron-builder.config.json
 
       # 7️⃣ Carica l’exe come artifact
       - name: Upload Windows executable

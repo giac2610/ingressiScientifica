@@ -4,10 +4,12 @@
     "buildResources": "resources"
   },
   "files": [
+    "package.json",
     "assets/**/*",
     "build/**/*",
     "capacitor.config.*",
-    "app/**/*"
+    "app/**/*",
+    "node_modules/**/*"
   ],
   "publish": {
     "provider": "github"
