@@ -51,7 +51,7 @@ jobs:
           npx electron-builder --win --config electron-builder.config.json -p always
 
       # 5. MAC: Installa dipendenze Electron, Compila TS, Pacchettizza
-      # Nota: Il file .dmg non sarà firmato (richiede rito xattr su Mac M1/M2/M3)
+      # Nota: Il file .dmg non sarà firmato (richiede terminal xattr su Mac M1/M2/M3)
       - name: Build Mac
         if: matrix.os == 'macos-latest'
         env:
@@ -62,7 +62,7 @@ jobs:
           npm run build
           npx electron-builder --mac --config electron-builder.config.json -p always
 
-      # 6. (Opzionale ma utile) Carica i file anche negli Artefatti della Action
+      # 6.Carica i file anche negli Artefatti della Action
       # Così se la release fallisce per qualche motivo, puoi scaricarli da qui.
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
