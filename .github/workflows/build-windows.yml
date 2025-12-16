@@ -39,6 +39,11 @@ jobs:
       - name: Sync Capacitor Electron
         run: npx cap sync electron
 
+      - name: Bump Version
+        run: |
+          cd electron
+          npm version 1.0.${{ github.run_number }} --no-git-tag-version
+  
       # 4. WINDOWS: Installa dipendenze Electron, Compila TS, Pacchettizza
       - name: Build Windows
         if: matrix.os == 'windows-latest'
