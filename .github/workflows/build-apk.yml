@@ -60,6 +60,7 @@ jobs:
           files: app-debug.apk
           tag_name: android-v${{ github.run_number }}
           name: Android Release v${{ github.run_number }}
+          prerelease: true
           body: "Nuova versione Totem Android generata automaticamente."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
