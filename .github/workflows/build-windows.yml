@@ -54,5 +54,5 @@ jobs:
         with:
           name: windows-exe
           path: |
-            dist/win-unpacked/
-            dist/*.exe
+            electron/dist/win-unpacked/
+            electron/dist/*.exe
