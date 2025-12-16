@@ -40,7 +40,7 @@ jobs:
 
       # 7️⃣ Carica l’exe come artifact
       - name: Upload Windows executable
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-exe
           path: |
