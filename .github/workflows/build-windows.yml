@@ -40,7 +40,7 @@ jobs:
 
       # 6️⃣ Build Electron Windows
       - name: Build Electron Windows
-        run: npm run electron:build
+        run: npx electron-builder --win
 
       # 7️⃣ Carica l’exe come artifact
       - name: Upload Windows executable
