@@ -616,18 +616,23 @@ this.dbService.getAppConfig().subscribe(config => {
   }
 
   // Calcola coordinate relative al canvas
+// Calcola coordinate relative al canvas (con correzione scala)
   getCoordinates(ev: any) {
     let x, y;
     const rect = this.signaturePadElement.getBoundingClientRect();
     
+    // Calcoliamo il rapporto tra pixel reali e dimensioni visive
+    const scaleX = this.signaturePadElement.width / rect.width;
+    const scaleY = this.signaturePadElement.height / rect.height;
+
     if (ev.changedTouches && ev.changedTouches.length > 0) {
       // Touch event
-      x = ev.changedTouches[0].clientX - rect.left;
-      y = ev.changedTouches[0].clientY - rect.top;
+      x = (ev.changedTouches[0].clientX - rect.left) * scaleX;
+      y = (ev.changedTouches[0].clientY - rect.top) * scaleY;
     } else {
       // Mouse event
-      x = ev.clientX - rect.left;
-      y = ev.clientY - rect.top;
+      x = (ev.clientX - rect.left) * scaleX;
+      y = (ev.clientY - rect.top) * scaleY;
     }
     return { x, y };
   }

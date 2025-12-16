@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Ionic App</title>
+  <title>Ingressi Scientifica</title>
 
   <base href="/" />
 
@@ -11,20 +11,17 @@
   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
-<meta
-  http-equiv="Content-Security-Policy"
-  content="
-    default-src 'self' capacitor-electron://localhost;
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' capacitor-electron://localhost;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data: blob: https:;
-    connect-src
-      'self'
-      https:
-      wss:
-      capacitor-electron://localhost;
-  "
-/>
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="
+      default-src 'self' capacitor-electron://localhost;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net capacitor-electron://localhost;
+      worker-src 'self' blob: https://cdn.jsdelivr.net;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: blob: https:;
+      connect-src 'self' https: wss: capacitor-electron://localhost blob:;
+    "
+  />
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
 
   <!-- add to homescreen for ios -->

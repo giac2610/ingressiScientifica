@@ -399,68 +399,76 @@
         </ion-toolbar>
       </ion-header>
       
-      <ion-content class="ion-padding">
-        <div class="pdf-viewer-container">
-  
-          <ng-container *ngIf="pdfObjectUrl; else noPdf">
-            <!-- <iframe [src]="privacyPdfUrl" type="application/pdf" width="100%" hieght="100%" title="Privacy Policy"></iframe> -->
-            <pdf-viewer
-              [src]="pdfObjectUrl"
-              [rotation]="0"
-              [original-size]="false"
-              [show-all]="true"
-              [fit-to-page]="false"
-              [zoom]="1"
-              [zoom-scale]="'page-width'"
-              [stick-to-page]="false"
-              [render-text]="true"
-              [external-link-target]="'blank'"
-              [autoresize]="true"
-              [show-borders]="false"
-              style="display: block; height: 80vh;" 
-            ></pdf-viewer>
-          </ng-container>
-  
-          <ng-template #noPdf>
-            <div class="pdf-error">
-              <ion-icon name="alert-circle-outline"></ion-icon>
-              <p>Nessuna informativa caricata</p>
-            </div>
-          </ng-template>
-
-        </div>
-        <div class="privacy-checks ion-margin-top">
-          <ion-item lines="none" class="checkbox-item">
-            <ion-checkbox slot="start" [(ngModel)]="checkConsense1" aria-label="Consenso 1"></ion-checkbox>
-            <ion-label class="ion-text-wrap" style="font-size: 0.9em;">
-              Dichiaro di aver letto e compreso il vincolo di riservatezza e le conseguenze legali in caso di violazione.
-            </ion-label>
-          </ion-item>
-
-          <ion-item lines="none" class="checkbox-item">
-            <ion-checkbox slot="start" [(ngModel)]="checkConsense2" aria-label="Consenso 2"></ion-checkbox>
-            <ion-label class="ion-text-wrap" style="font-size: 0.9em;">
-              Accetto il trattamento dei dati personali per le finalità di sicurezza descritte.
-            </ion-label>
-          </ion-item>
-        </div>
-
-        <div class="signature-area">
-          <p>Firma qui sotto:</p>
-          <canvas #signatureCanvas 
-            (mousedown)="startDrawing($event)" (touchstart)="startDrawing($event)"
-            (mousemove)="moved($event)" (touchmove)="moved($event)"
-            (mouseup)="endDrawing()" (touchend)="endDrawing()"
-            class="signature-pad">
-          </canvas>
+<ion-content class="ion-padding" style="--background: #fff;">
+        
+        <div class="modal-split-layout">
           
-          <ion-button size="small" fill="outline" color="medium" (click)="clearSignature()">
-            <ion-icon name="refresh-outline" slot="start"></ion-icon>
-            Cancella Firma
-          </ion-button>
-        </div>
-      </ion-content>
+          <div class="left-col">
+            <div class="pdf-viewer-container">
+              <ng-container *ngIf="pdfObjectUrl; else noPdf">
+                <pdf-viewer
+                  [src]="pdfObjectUrl"
+                  [rotation]="0"
+                  [original-size]="false"
+                  [show-all]="true"
+                  [fit-to-page]="false"
+                  [zoom]="1"
+                  [zoom-scale]="'page-width'"
+                  [stick-to-page]="false"
+                  [render-text]="true"
+                  [external-link-target]="'blank'"
+                  [autoresize]="true"
+                  [show-borders]="false"
+                  class="pdf-viewer-custom"
+                ></pdf-viewer>
+              </ng-container>
+      
+              <ng-template #noPdf>
+                <div class="pdf-error">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <p>Nessuna informativa caricata</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
 
+          <div class="right-col">
+            
+            <div class="privacy-checks">
+              <ion-item lines="none" class="checkbox-item">
+                <ion-checkbox slot="start" [(ngModel)]="checkConsense1"></ion-checkbox>
+                <ion-label class="ion-text-wrap">
+                  Dichiaro di aver letto e compreso il vincolo di riservatezza.
+                </ion-label>
+              </ion-item>
+
+              <ion-item lines="none" class="checkbox-item">
+                <ion-checkbox slot="start" [(ngModel)]="checkConsense2"></ion-checkbox>
+                <ion-label class="ion-text-wrap">
+                  Accetto il trattamento dei dati personali.
+                </ion-label>
+              </ion-item>
+            </div>
+
+            <div class="signature-area">
+              <p>Firma qui sotto:</p>
+              <canvas #signatureCanvas 
+                (mousedown)="startDrawing($event)" (touchstart)="startDrawing($event)"
+                (mousemove)="moved($event)" (touchmove)="moved($event)"
+                (mouseup)="endDrawing()" (touchend)="endDrawing()"
+                class="signature-pad">
+              </canvas>
+              
+              <ion-button size="small" fill="outline" color="medium" (click)="clearSignature()">
+                <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                Cancella Firma
+              </ion-button>
+            </div>
+
+          </div>
+        </div>
+
+      </ion-content>
       <ion-footer>
         <ion-toolbar>
           <ion-row>
