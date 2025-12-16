@@ -1,0 +1,35 @@
+name: Build Windows Electron
+
+on:
+  push:
+    branches:
+      - main  # o il branch che vuoi monitorare
+
+jobs:
+  build-win:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Ionic App
+        run: ionic build
+
+      - name: Sync Capacitor Electron
+        run: npx cap sync electron
+
+      - name: Build Electron Windows
+        run: npm run electron:build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-exe
+          path: dist/win-unpacked/  # o dove genera il tuo exe
