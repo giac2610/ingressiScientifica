@@ -34,6 +34,9 @@ jobs:
       - name: Create Environment File
         run: |
           mkdir -p src/environments
+
+          echo "export const environment = { production: false };" > src/environments/environment.ts
+          
           # Creiamo il file in un colpo solo usando cat <<EOF
           cat <<EOF > src/environments/environment.prod.ts
           export const environment = {
