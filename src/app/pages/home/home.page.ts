@@ -147,10 +147,16 @@ this.dbService.getAppConfig().subscribe(config => {
     console.log("Lunghezza stringa Base64:", config.privacyPdfBase64.length); // <--- DEVE ESSERE LUNGA
     
     const blob = this.dbService.base64ToBlob(config.privacyPdfBase64);
+    if (this.pdfObjectUrl) {
+      URL.revokeObjectURL(this.pdfObjectUrl);
+    }
     console.log("Blob creato:", blob); // <--- DEVE AVERE size > 0
     
     // ... resto del codice
-    this.pdfObjectUrl = URL.createObjectURL(blob);
+    const objectUrl = URL.createObjectURL(blob);
+
+    this.privacyPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);this.privacyPdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.pdfObjectUrl = objectUrl;
     console.log("URL Blob finale:", this.pdfObjectUrl); // <--- DEVE ESSERE tipo blob:http://...
   } else {
     console.warn("Nessun PDF trovato nel config!");

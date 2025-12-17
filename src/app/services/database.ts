@@ -117,10 +117,8 @@ export class DatabaseService {
   base64ToBlob(base64: string): Blob {
     try {
       // 1. Rimuovi l'intestazione "data:application/pdf;base64," se presente
-      const base64Clean = base64.split(',')[1] || base64;
-      
-      // 2. Decodifica la stringa
-      const byteCharacters = atob(base64Clean);
+      const base64Clean = base64.includes(',') ? base64.split(',')[1] : base64;
+      const byteCharacters = atob(base64Clean.trim());
       const byteNumbers = new Array(byteCharacters.length);
       
       for (let i = 0; i < byteCharacters.length; i++) {
