@@ -31,6 +31,13 @@ jobs:
           npm ci
           npm install -g @ionic/cli
 
+      - name: Create Environment File
+        run: |
+          mkdir -p src/environments
+          echo "${{ secrets.ENV_PROD_FILE }}" > src/environments/environment.prod.ts
+          # Opzionale: Creiamo anche quello di sviluppo per evitare errori di import
+          echo "${{ secrets.ENV_PROD_FILE }}" > src/environments/environment.ts
+
       # 2. Compila Angular/Ionic (Crea la cartella www)
       - name: Build Ionic App
         run: ionic build --prod --no-interactive
