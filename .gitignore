@@ -70,5 +70,5 @@ testem.log
 Thumbs.db
 
 resources/android/**/*
-environments/
 src/environments/
+src/environments/*.ts
