@@ -92,9 +92,9 @@ ion-content {
 /* --- STILE SPECIFICO PER LA CARD DEL FORM (Sovrascrive quello dei menu) --- */
 .menu-wrapper .input-card {
   /* Reset delle dimensioni rispetto alle card-pulsante */
-  width: 90%;          /* Occupa quasi tutta la larghezza su mobile */
+  width: 95%;          /* Occupa quasi tutta la larghezza su mobile */
   max-width: 600px;    /* Più larga su desktop (invece di 420px) */
-  height: 60vh;        /* Altezza automatica in base al contenuto! */
+  height: 80vh;        /* Altezza automatica in base al contenuto! */
   min-height: 400px;   /* Altezza minima per estetica */
   
   margin: 0 auto;      /* Centrata orizzontalmente */

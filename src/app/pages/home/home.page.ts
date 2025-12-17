@@ -1,5 +1,5 @@
 import { addIcons } from 'ionicons';
-import { create, checkmarkCircle, refreshOutline, linkOutline, documentTextOutline, alertCircleOutline } from 'ionicons/icons';
+import { create, checkmarkCircle, refreshOutline, linkOutline, documentTextOutline, alertCircleOutline, arrowBackOutline } from 'ionicons/icons';
 import { ActiveEmployeeResult } from './../../services/database';
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2, inject } from '@angular/core';
 import { IonContent, IonSelect, IonCheckbox, ToastController, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonAvatar, IonBadge, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
@@ -139,7 +139,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
     private router: Router,
     private sanitizer: DomSanitizer
   ){
-    addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline});
+    addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline, arrowBackOutline});
 this.dbService.getAppConfig().subscribe(config => {
   console.log("Configurazione arrivata:", config); // <--- CONTROLLA QUESTO
   
@@ -263,6 +263,15 @@ this.dbService.getAppConfig().subscribe(config => {
     });
   }
 
+  get employeesOut(): Employee[] {
+    return this.filteredEmployees.filter(e => e.status !== 'IN');
+  }
+
+  // Lista di chi è già dentro (IN)
+  get employeesIn(): Employee[] {
+    return this.filteredEmployees.filter(e => e.status === 'IN');
+  }
+
   // SUPPLIERS
   selectSupplier(supplier: Supplier) {
     this.selectedSupplier = supplier;
@@ -313,6 +322,15 @@ this.dbService.getAppConfig().subscribe(config => {
       // Alfabetico
       return a.name.localeCompare(b.name);
     });
+  }
+
+  get tpEmployeesOut(): Employee[] {
+    return this.filteredTpEmployees.filter(e => e.status !== 'IN');
+  }
+
+  // Lista di chi è già dentro (IN)
+  get tpEmployeesIn(): Employee[] {
+    return this.filteredTpEmployees.filter(e => e.status === 'IN');
   }
 
   async toggleTpEmployee(employee: Employee) {
