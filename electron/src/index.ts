@@ -23,7 +23,6 @@ const appMenuBarMenuTemplate: (MenuItemConstructorOptions | MenuItem)[] = [
 const capacitorFileConfig: CapacitorElectronConfig = getCapacitorElectronConfig();
 
 // Initialize our app. You can pass menu templates into the app here.
-// const myCapacitorApp = new ElectronCapacitorApp(capacitorFileConfig);
 const myCapacitorApp = new ElectronCapacitorApp(capacitorFileConfig, trayMenuTemplate, appMenuBarMenuTemplate);
 
 // If deeplinking is enabled then we will set it up here.
@@ -42,21 +41,20 @@ if (electronIsDev) {
 //  GESTIONE AGGIORNAMENTI AUTOMATICI 
 // ====================================
 
-// 1. Configura il logger per vedere cosa succede nella console
+// 1. Configura il logger
 autoUpdater.logger = console;
 
-// 2. GESTIONE ERRORI: Fondamentale per evitare il crash su Error 404 (Release Android)
+// 2. GESTIONE ERRORI
 autoUpdater.on('error', (error) => {
-  console.warn('Errore AutoUpdater intercettato (l\'app continuerà a funzionare):', error);
-  // Qui non facciamo nulla di visivo per non disturbare l'utente se l'errore è solo "file non trovato"
+  console.warn('Errore AutoUpdater intercettato:', error);
 });
 
-// 3. AGGIORNAMENTO TROVATO: Log opzionale
+// 3. AGGIORNAMENTO TROVATO
 autoUpdater.on('update-available', () => {
   console.log('Nuovo aggiornamento trovato! Inizio download...');
 });
 
-// 4. AGGIORNAMENTO SCARICATO: Chiedi all'utente di riavviare
+// 4. AGGIORNAMENTO SCARICATO: FIX RIAVVIO MAC
 autoUpdater.on('update-downloaded', () => {
   dialog.showMessageBox({
     type: 'info',
@@ -64,9 +62,17 @@ autoUpdater.on('update-downloaded', () => {
     message: 'Una nuova versione è stata scaricata. Vuoi riavviare l\'applicazione ora per installarla?',
     buttons: ['Riavvia Ora', 'Dopo']
   }).then((result) => {
-    // Se l'utente clicca il primo bottone (Indice 0 = Riavvia Ora)
+    // Se l'utente clicca il primo bottone (Riavvia Ora)
     if (result.response === 0) {
-      autoUpdater.quitAndInstall();
+      
+      // --- FIX IMPORTANTE PER MAC ---
+      // 1. Rimuoviamo i listener di chiusura per evitare blocchi
+      app.removeAllListeners('window-all-closed');
+      
+      // 2. Usiamo quitAndInstall con parametri specifici:
+      // isSilent: false (mostra finestre se serve)
+      // isForceRunAfter: true (forza il riavvio della nuova versione)
+      autoUpdater.quitAndInstall(false, true); 
     }
   });
 });
@@ -83,11 +89,9 @@ autoUpdater.on('update-downloaded', () => {
   await myCapacitorApp.init();
 
   // Check for updates if we are in a packaged app.
-  // MODIFICA: Avviamo il controllo solo se NON siamo in dev mode
   if (!electronIsDev) {
-    // MODIFICA: Usiamo .catch() per evitare "Unhandled Promise Rejection" all'avvio
     autoUpdater.checkForUpdatesAndNotify().catch((err) => {
-      console.log('Check aggiornamenti fallito o nessun aggiornamento (Normale in caso di release Android).');
+      console.log('Check aggiornamenti: nessun update o errore rete (ignorato).');
     });
   }
 })();
