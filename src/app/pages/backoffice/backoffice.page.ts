@@ -94,8 +94,8 @@ export class BackofficePage {
     this.dbService.getAppConfig().subscribe(config => {
       // Se l'editor è pronto e il testo è diverso, aggiornalo.
       // Questo succede solo al caricamento iniziale o se cambia nel DB.
-      if (config.privacyPdfBase64) {
-        this.privacyPdf = config.privacyPdfBase64;
+      if (config.privacyPdfUrl) {
+        this.privacyPdf = config.privacyPdfUrl;
       }
     });
   }
