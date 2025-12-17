@@ -34,10 +34,24 @@ jobs:
       - name: Create Environment File
         run: |
           mkdir -p src/environments
-          echo "${{ secrets.ENV_PROD_FILE }}" > src/environments/environment.prod.ts
-          # Opzionale: Creiamo anche quello di sviluppo per evitare errori di import
-          echo "${{ secrets.ENV_PROD_FILE }}" > src/environments/environment.ts
-        
+          mkdir -p src/environments
+          # Creiamo il file in un colpo solo usando cat <<EOF
+          cat <<EOF > src/environments/environment.prod.ts
+          export const environment = {
+            production: true,
+            firebase: {
+              apiKey: "${{ secrets.FIREBASE_API_KEY }}",
+              authDomain: "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
+              projectId: "${{ secrets.FIREBASE_PROJECT_ID }}",
+              storageBucket: "${{ secrets.FIREBASE_STORAGE_BUCKET }}",
+              messagingSenderId: "${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}",
+              appId: "${{ secrets.FIREBASE_APP_ID }}",
+              measurementId: '${{ secrets.FIREBASE_MEASUREMENT_ID }}',
+              region: '${{ secrets.FIREBASE_REGION }}',
+              storageBucketUrl: '${{ secrets.FIREBASE_STORAGE_BUCKET_URL }}'
+            }
+          };
+          EOF
       # 3. Compilazione Web
       - name: Build Ionic App
         run: ionic build --prod --no-interactive
