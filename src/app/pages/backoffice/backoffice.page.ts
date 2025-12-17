@@ -434,4 +434,43 @@ async savePrivacyPdf() {
     this.empFormImage = emp.imageUrl || '';
   }
 
+  removeNewStartupLogo() {
+    this.newStartupLogo = '';
+  }
+
+  // 2. Rimuovi Logo Startup Esistente (Modifica)
+  removeSelectedStartupLogo() {
+    if (this.selectedStartup) {
+      this.selectedStartup.logoUrl = '';
+    }
+  }
+
+  // 3. Rimuovi Foto Dipendente
+  removeEmployeeImage() {
+    this.empFormImage = '';
+  }
+
+  // 4. Rimuovi Logo Fornitore
+  removeSupplierLogo() {
+    this.newSupplierLogo = '';
+    if (this.selectedSupplier) {
+      this.selectedSupplier.logoUrl = ''; // Gestisce anche la modifica
+    }
+  }
+
+  // 5. Rimuovi Logo Terze Parti
+  removeThirdPartyLogo() {
+    this.newThirdPartyLogo = '';
+  }
+
+  // 6. Rimuovi Foto Dipendente Terze Parti
+  removeTpEmployeeImage() {
+    this.newTpEmpImage = '';
+  }
+  
+  // 7. Rimuovi PDF Privacy
+  removePrivacyPdf() {
+    this.privacyPdf = '';
+  }
+
 }
