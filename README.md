@@ -1,6 +1,6 @@
 # Ingressi Scientifica - Sistema di Gestione Accessi
 
-parla di github secrets e actions
+parla di github secrets e actions!!!
 
 Questo progetto è una **Web App** sviluppata con **Ionic** e **Angular**, progettata per gestire il flusso di ingressi e uscite presso la struttura *Scientifica*.
 
