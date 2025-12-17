@@ -399,7 +399,7 @@ async uploadFile(base64OrUrl: string, folder: string): Promise<string> {
     const updatedEmployees = employees.map(e => {
       // Confrontiamo per nome e ruolo (o potremmo usare un ID se lo avessimo)
       if (e.name === oldEmp.name && e.role === oldEmp.role) {
-        return { ...newEmp, status: e.status, lastEntryTime: e.lastEntryTime }; // Mantieni lo stato IN/OUT
+        return { ...newEmp, status: e.status || 'OUT', lastEntryTime: e.lastEntryTime || null}; // Mantieni lo stato IN/OUT
       }
       return e;
     });
