@@ -9,6 +9,7 @@ import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalo
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { provideFunctions, getFunctions } from '@angular/fire/functions';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideStorage, getStorage } from '@angular/fire/storage';
 import { environment } from './environments/environment'; // Importa la configurazione
 import { HttpClientModule } from '@angular/common/http'; // Necessario per il service di invio dati
 
@@ -25,6 +26,7 @@ bootstrapApplication(AppComponent, {
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFunctions(() => getFunctions(undefined, environment.firebase.region)), 
     provideFirestore(() => getFirestore()),
+    provideStorage(() => getStorage()),
     // 3. Aggiunge il modulo HttpClient
     importProvidersFrom(HttpClientModule) 
   ],

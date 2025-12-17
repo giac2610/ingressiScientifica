@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
 
 import { 
   Firestore, 
@@ -112,7 +113,50 @@ export class DatabaseService {
       return () => unsubscribe();
     });
   }
+async uploadFile(base64OrUrl: string, folder: string): Promise<string> {
+    // 1. Se è vuoto o è già un link web (http...), non fare nulla
+    if (!base64OrUrl || !base64OrUrl.startsWith('data:')) {
+      return base64OrUrl || '';
+    }
 
+    try {
+      // 2. Converti Base64 in Blob
+      const blob = this.dataURLtoBlob(base64OrUrl);
+      
+      // 3. Genera nome file unico
+      const mime = blob.type; 
+      const ext = mime.split('/')[1] || 'png'; 
+      const fileName = `${folder}/${new Date().getTime()}.${ext}`;
+      
+      // 4. Carica su Storage
+      const storage = getStorage();
+      const storageRef = ref(storage, fileName);
+      
+      await uploadBytes(storageRef, blob);
+      
+      // 5. Ottieni URL scaricabile
+      const downloadUrl = await getDownloadURL(storageRef);
+      console.log(`Upload completato in ${folder}:`, downloadUrl);
+      
+      return downloadUrl;
+
+    } catch (e) {
+      console.error('Errore Upload Storage:', e);
+      throw new Error('Impossibile caricare il file. Riprova.');
+    }
+  }
+
+  private dataURLtoBlob(dataurl: string): Blob {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  }
 // Converte la stringa Base64 (salvata in Firestore) in un Blob reale
   base64ToBlob(base64: string): Blob {
     try {
@@ -641,6 +685,26 @@ export class DatabaseService {
     });
   }
 
+    // Modifica dati Dipendente (Trova il vecchio e lo sostituisce col nuovo)
+  async updateTpEmployeeDetails(thirdPartyId: string, oldEmp: Employee, newEmp: Employee) {
+    const thirdPartyRef = doc(this.firestore, 'third_parties', thirdPartyId);
+    
+    // Leggi array attuale
+    const snapshot = await getDoc(thirdPartyRef);
+    if (!snapshot.exists()) throw new Error("Utente Terzo non trovato");
+    const employees = (snapshot.data() as ThirdParty).employees || [];
+
+    // Trova e sostituisci
+    const updatedEmployees = employees.map(e => {
+      // Confrontiamo per nome e ruolo (o potremmo usare un ID se lo avessimo)
+      if (e.name === oldEmp.name && e.role === oldEmp.role) {
+        return { ...newEmp, status: e.status, lastEntryTime: e.lastEntryTime }; // Mantieni lo stato IN/OUT
+      }
+      return e;
+    });
+
+    return updateDoc(thirdPartyRef, { employees: updatedEmployees });
+  }
   // ==========================================
   // CONFIGURAZIONE GLOBALE (Privacy, ecc.)
   // ==========================================

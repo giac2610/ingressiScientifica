@@ -6,7 +6,8 @@ const firebaseConfig = {
   messagingSenderId: "283037814528",
   appId: "1:283037814528:web:c2979e2dfc0d31a71eade5",
   measurementId: "G-EW1RE82XN4",
-  region: "europe-west8"
+  region: "europe-west8",
+  storageBucketUrl: "gs://ingrressiscientifica.firebasestorage.app"
 };
 
 export const environment = {
