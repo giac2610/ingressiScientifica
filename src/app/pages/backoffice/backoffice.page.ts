@@ -41,6 +41,8 @@ export class BackofficePage {
 
   selectedSegment: string = 'presenze';
   privacyPdf: string = '';
+  privacyPdfUrl: string = '';
+  rawPrivacyPdf: File | null = null;
   
   //  STARTUP
 
@@ -100,8 +102,8 @@ export class BackofficePage {
     this.dbService.getAppConfig().subscribe(config => {
       // Se l'editor è pronto e il testo è diverso, aggiornalo.
       // Questo succede solo al caricamento iniziale o se cambia nel DB.
-      if (config.privacyPdfBase64) {
-        this.privacyPdf = config.privacyPdfBase64;
+      if (config.privacyPdfUrl) {
+        this.privacyPdf = config.privacyPdfUrl;
       }
     });
   }
@@ -257,6 +259,11 @@ export class BackofficePage {
         alert(`File troppo grande (${(file.size / 1024 / 1024).toFixed(2)} MB). \nIl limite di Firestore è 1MB. Comprimi il PDF prima di caricarlo.`);
         return;
       }
+
+      this.rawPrivacyPdf = file;
+
+      this.privacyPdf = 'file pronto'
+      return;
     }
     const reader = new FileReader();
     reader.onload = () => {
@@ -269,23 +276,30 @@ export class BackofficePage {
       if (target === 'tpEmployee') this.newTpEmpImage = res;
       if (target === 'newSupplier') this.newSupplierLogo = res;
       if (target === 'editSupplier' && this.selectedSupplier) this.selectedSupplier.logoUrl = res;
-      if (target === 'privacyPdf') this.privacyPdf = res;
+      // if (target === 'privacyPdf') this.privacyPdf = res;
     };
     reader.readAsDataURL(file);
   }
 
 async savePrivacyPdf() {
-    if (!this.privacyPdf) return;
+    if (!this.rawPrivacyPdf) {
+      alert('Nessun file PDF selezionato.');
+      return;
+    }
     try {
-      const pdfUrl = await this.dbService.uploadFile(this.privacyPdf, 'config');
-      await this.dbService.savePrivacyPdf(pdfUrl);
+      // const pdfUrl = await this.dbService.privacyPdfUrl$ .toPromise();
+      // const pdfUrl = await this.dbService.uploadFile(this.privacyPdf, 'config');
+      await this.dbService.savePrivacyPdf(this.rawPrivacyPdf);
+      // await this.dbService.savePrivacyPdf(pdfUrl!);
       alert('PDF Privacy salvato con successo!');
+
+      this.rawPrivacyPdf = null;
+      this.privacyPdf = '';
     } catch (e) {
       console.error(e);
       alert('Errore nel salvataggio. Riprova.');
     }
   }
-
   // --- AZIONI OSPITI ---
   async checkOut(guest: Guest) {
     if(confirm(`Confermi l'uscita di ${guest.name}?`)) {

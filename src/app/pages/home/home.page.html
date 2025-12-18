@@ -402,10 +402,10 @@
       <ion-content class="ion-padding">
         <div class="pdf-viewer-container">
   
-          <ng-container *ngIf="pdfObjectUrl; else noPdf">
+          <ng-container *ngIf="privacyPdfSrc; else noPdf">
             <!-- <iframe [src]="privacyPdfUrl" type="application/pdf" width="100%" hieght="100%" title="Privacy Policy"></iframe> -->
             <pdf-viewer
-              [src]="pdfObjectUrl"
+              [src]="privacyPdfSrc"
               [rotation]="0"
               [original-size]="false"
               [show-all]="true"

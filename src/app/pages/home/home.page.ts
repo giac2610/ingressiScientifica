@@ -140,20 +140,32 @@ export class HomePage implements AfterViewInit, OnDestroy {
     private sanitizer: DomSanitizer
   ){
     addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline});
+// Assicurati di avere questa variabile nella classe:
+// privacyPdfSrc: string | null = null;
+
 this.dbService.getAppConfig().subscribe(config => {
-  console.log("Configurazione arrivata:", config); // <--- CONTROLLA QUESTO
-  
-  if (config.privacyPdfBase64) {
-    console.log("Lunghezza stringa Base64:", config.privacyPdfBase64.length); // <--- DEVE ESSERE LUNGA
-    
-    const blob = this.dbService.base64ToBlob(config.privacyPdfBase64);
-    console.log("Blob creato:", blob); // <--- DEVE AVERE size > 0
-    
-    // ... resto del codice
-    this.pdfObjectUrl = URL.createObjectURL(blob);
-    console.log("URL Blob finale:", this.pdfObjectUrl); // <--- DEVE ESSERE tipo blob:http://...
+  console.log('Configurazione ricevuta:', config);
+
+  if (config && config.privacyPdfUrl) {
+    // CASO 1: È un link di Firebase Storage (Nuovo Metodo)
+    if (config.privacyPdfUrl.startsWith('http')) {
+      console.log('PDF rilevato da URL:', config.privacyPdfUrl);
+      this.privacyPdfSrc = config.privacyPdfUrl;
+    } 
+    // CASO 2: È un vecchio Base64 (Vecchio Metodo - Compatibilità)
+    else {
+      console.log('PDF rilevato come Base64, converto...');
+      try {
+        const blob = this.dbService.base64ToBlob(config.privacyPdfUrl);
+        this.privacyPdfSrc = URL.createObjectURL(blob);
+      } catch (err) {
+        console.error('Errore lettura PDF vecchio:', err);
+        this.privacyPdfSrc = null; // Mostrerà "Nessun documento" invece di crashare
+      }
+    }
   } else {
-    console.warn("Nessun PDF trovato nel config!");
+    // Nessun PDF configurato
+    this.privacyPdfSrc = null;
   }
 });
   }

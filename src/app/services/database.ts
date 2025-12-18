@@ -79,8 +79,7 @@ export interface ActiveThirdPartyEmployeeResult {
   thirdParty: ThirdParty;
 }
 export interface AppConfig {
-  privacyText?: string; // deprecato
-  privacyPdfBase64?: string;
+  privacyPdfUrl?: string;
 }
 @Injectable({
   providedIn: 'root'
@@ -113,6 +112,7 @@ export class DatabaseService {
       return () => unsubscribe();
     });
   }
+
 async uploadFile(base64OrUrl: string, folder: string): Promise<string> {
     // 1. Se è vuoto o è già un link web (http...), non fare nulla
     if (!base64OrUrl || !base64OrUrl.startsWith('data:')) {
@@ -723,13 +723,45 @@ async uploadFile(base64OrUrl: string, folder: string): Promise<string> {
   }
 
 
-  async savePrivacyPdf(base64: string) {
-    const docRef = doc(this.firestore, 'config', 'main');
-    // Usa setDoc con merge:true per non sovrascrivere altri campi
-    const { setDoc } = await import('@angular/fire/firestore');
-    return setDoc(docRef, { privacyPdfBase64: base64 }, { merge: true });
+// Carica il PDF grezzo su Storage e salva il link nel DB
+  async savePrivacyPdf(pdfFile: File) {
+    try {
+      // 1. Definisci il percorso su Storage
+      const fileName = `privacy_${Date.now()}.pdf`;
+      const filePath = `privacy_files/${fileName}`;
+      const storageRef = ref(getStorage(), filePath);
+
+      // 2. Carica il file FISICO direttamente (Niente Base64!)
+      console.log('Caricamento PDF su Storage...');
+      await uploadBytes(storageRef, pdfFile);
+
+      // 3. Ottieni il link pubblico
+      const downloadUrl = await getDownloadURL(storageRef);
+      console.log('PDF caricato:', downloadUrl);
+
+      // 4. Salva il link su Firestore
+      const docRef = doc(this.firestore, 'config', 'main');
+      const { setDoc } = await import('@angular/fire/firestore'); // Import dinamico se serve o usa quello statico
+      
+      return setDoc(docRef, { privacyPdfUrl: downloadUrl }, { merge: true });
+
+    } catch (error) {
+      console.error('Errore salvataggio PDF:', error);
+      throw error;
+    }
   }
 
+  get privacyPdfUrl$(): Observable<string> {
+    return new Observable(observer => {
+      const configRef = doc(this.firestore, 'config', 'main');
+      const unsubscribe = onSnapshot(configRef, (snap) => {
+        const data = snap.data() as AppConfig;
+        observer.next(data?.privacyPdfUrl || '');
+      });
+      return () => unsubscribe();
+    });
+  }
+  
   // Helper: Converte URL immagine in Base64
   private async imageUrlToBase64(url: string): Promise<string> {
     try {
