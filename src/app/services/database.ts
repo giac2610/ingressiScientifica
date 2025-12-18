@@ -740,9 +740,8 @@ async uploadFile(base64OrUrl: string, folder: string): Promise<string> {
       console.log('PDF caricato:', downloadUrl);
 
       // 4. Salva il link su Firestore
-      const docRef = doc(this.firestore, 'config', 'main');
-      const { setDoc } = await import('@angular/fire/firestore'); // Import dinamico se serve o usa quello statico
-      
+      const docRef = doc(this.firestore, 'config', 'main');// Import dinamico se serve o usa quello statico
+
       return setDoc(docRef, { privacyPdfUrl: downloadUrl }, { merge: true });
 
     } catch (error) {

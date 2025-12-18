@@ -103,7 +103,7 @@ export class BackofficePage {
       // Se l'editor è pronto e il testo è diverso, aggiornalo.
       // Questo succede solo al caricamento iniziale o se cambia nel DB.
       if (config.privacyPdfUrl) {
-        this.privacyPdf = config.privacyPdfUrl;
+        this.privacyPdf = "File attualmente online"
       }
     });
   }
@@ -126,12 +126,9 @@ export class BackofficePage {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      // Questa stringa inizia con "data:application/pdf;base64,..."
-      this.privacyPdf = reader.result as string;
-    };
-    reader.readAsDataURL(file);
+    this.rawPrivacyPdf = file;
+
+    this.privacyPdf = 'file pronto: ' + file.name;
   }
   
   // Getter per filtrare le startup nella vista a griglia
@@ -249,20 +246,7 @@ export class BackofficePage {
 
   private handleFile(file: File, target: string) {
     if (target === 'privacyPdf') {
-      // 1. Controllo Tipo
-      if (file.type !== 'application/pdf') {
-        alert('Per favore carica solo file PDF.');
-        return;
-      }
-      // 2. Controllo Dimensione (Max 950KB per stare sicuri sotto il limite di 1MB)
-      if (file.size > 950 * 1024) {
-        alert(`File troppo grande (${(file.size / 1024 / 1024).toFixed(2)} MB). \nIl limite di Firestore è 1MB. Comprimi il PDF prima di caricarlo.`);
-        return;
-      }
-
-      this.rawPrivacyPdf = file;
-
-      this.privacyPdf = 'file pronto'
+      this.handlePdfFile(file)
       return;
     }
     const reader = new FileReader();
@@ -294,7 +278,6 @@ async savePrivacyPdf() {
       alert('PDF Privacy salvato con successo!');
 
       this.rawPrivacyPdf = null;
-      this.privacyPdf = '';
     } catch (e) {
       console.error(e);
       alert('Errore nel salvataggio. Riprova.');
