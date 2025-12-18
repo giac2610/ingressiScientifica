@@ -466,9 +466,9 @@
           
           <div class="left-col">
             <div class="pdf-viewer-container">
-              <ng-container *ngIf="pdfObjectUrl; else noPdf">
+              <ng-container *ngIf="privacyPdfSrc; else noPdf">
                 <pdf-viewer
-                  [src]="pdfObjectUrl"
+                  [src]="privacyPdfSrc"
                   [rotation]="0"
                   [original-size]="false"
                   [show-all]="true"
