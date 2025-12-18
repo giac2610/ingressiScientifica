@@ -18,7 +18,6 @@ L'applicazione è divisa in due parti:
     - [1. Approccio Ibrido ai Dati (Firestore + Google Sheets)](#1-approccio-ibrido-ai-dati-firestore--google-sheets)
     - [2. Struttura Dati](#2-struttura-dati)
   - [Sfondo Animato WebGL](#sfondo-animato-webgl)
-    - [Come funziona (`home.page.ts`)\[Punctuation ':'\]](#come-funziona-homepagetspunctuation-)
   - [Funzionalità Principali](#funzionalità-principali)
     - [1. Gestione Firma Ospiti (Kiosk)](#1-gestione-firma-ospiti-kiosk)
     - [2. Gestione Startup \& Dipendenti](#2-gestione-startup--dipendenti)
@@ -99,8 +98,6 @@ Una delle scelte architetturali più importanti è la separazione netta tra lo *
 - `config`: Collezione singleton (doc `main`) per impostazioni globali (es. URL Privacy Policy).
 
 ## Sfondo Animato WebGL
-
-### Come funziona (`home.page.ts`)[Punctuation ':']
 
 1. **Tecnica Metaballs:**
     L'effetto "liquido" è ottenuto sommando i campi di influenza di diverse particelle circolari.
