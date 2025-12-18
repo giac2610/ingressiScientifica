@@ -11,6 +11,7 @@ import { DatabaseService, Startup, Guest, Employee, Reason, Supplier, ThirdParty
 import { Observable, combineLatest, map, BehaviorSubject } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploadOutline, personAddOutline, createOutline, arrowBackOutline, saveOutline, settingsOutline, cartOutline, briefcaseOutline, listOutline, eyeOutline, codeSlashOutline, listCircleOutline, informationCircleOutline, openOutline, documentTextOutline } from 'ionicons/icons';
+import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
 
 @Component({
   selector: 'app-backoffice',
@@ -22,7 +23,7 @@ import { trashOutline, businessOutline, peopleOutline, logOutOutline, cloudUploa
     IonContent, IonHeader, IonTitle, IonToolbar, IonSegment, IonSegmentButton, 
     IonLabel, IonList, IonItem, IonInput, IonButton, IonIcon, IonCard, IonCardContent,
     IonGrid, IonRow, IonCol, IonAvatar, IonTextarea,
-    IonSearchbar, IonCardHeader, IonCardTitle, IonSelect, IonSelectOption
+    IonSearchbar, IonCardHeader, IonCardTitle
   ]
 })
 export class BackofficePage {
@@ -38,8 +39,10 @@ export class BackofficePage {
 
   private dbService = inject(DatabaseService);
 
-  selectedSegment: string = 'startups';
+  selectedSegment: string = 'presenze';
   privacyPdf: string = '';
+  privacyPdfUrl: string = '';
+  rawPrivacyPdf: File | null = null;
   
   //  STARTUP
 
@@ -79,10 +82,15 @@ export class BackofficePage {
   allSuppliers$ = this.dbService.getSuppliers()  // -- UTENTI TERZI (Logica identica a Startup) --
   newSupplierLogo: string = '';;
 
+  // --UTENTI TERZI --
   newThirdPartyName: string = '';
   newThirdPartyLogo: string = '';
-  selectedThirdPartyId: string = ''; // Per il dropdown
+  selectedThirdParty: ThirdParty | null = null; // Per il dropdown
   thirdParties$ = this.dbService.getThirdParties();
+  allThirdParties$ = this.dbService.getThirdParties();
+  thirdPartySearchTerm: string = '';
+  
+
   // Variabili form dipendente Terzi (riciclo quelle startup o ne creo nuove per pulizia)
   newTpEmpName: string = '';
   newTpEmpRole: string = '';
@@ -95,7 +103,7 @@ export class BackofficePage {
       // Se l'editor è pronto e il testo è diverso, aggiornalo.
       // Questo succede solo al caricamento iniziale o se cambia nel DB.
       if (config.privacyPdfUrl) {
-        this.privacyPdf = config.privacyPdfUrl;
+        this.privacyPdf = "File attualmente online"
       }
     });
   }
@@ -111,7 +119,6 @@ export class BackofficePage {
       alert('Carica solo file PDF.');
       return;
     }
-    
     // 2. Controllo Peso (IMPORTANTE per non bloccare Firestore)
     // 900 KB = 900 * 1024 bytes
     if (file.size > 700 * 1024) {
@@ -119,12 +126,9 @@ export class BackofficePage {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      // Questa stringa inizia con "data:application/pdf;base64,..."
-      this.privacyPdf = reader.result as string;
-    };
-    reader.readAsDataURL(file);
+    this.rawPrivacyPdf = file;
+
+    this.privacyPdf = 'file pronto: ' + file.name;
   }
   
   // Getter per filtrare le startup nella vista a griglia
@@ -138,6 +142,7 @@ export class BackofficePage {
   // Crea Nuova
   async addStartup() {
     if (!this.newStartupName.trim()) return;
+    this.newStartupLogo = await this.dbService.uploadFile(this.newStartupLogo, `startups/${this.newStartupName}/logo`);
     await this.dbService.addStartup({
       name: this.newStartupName,
       logoUrl: this.newStartupLogo,
@@ -160,6 +165,7 @@ export class BackofficePage {
   // Salva Modifiche Startup (Edit)
   async updateStartup() {
     if (!this.selectedStartup || !this.selectedStartup.id) return;
+    this.selectedStartup.logoUrl = await this.dbService.uploadFile(this.selectedStartup.logoUrl!, `startups/${this.selectedStartup.name}/logo`);
     await this.dbService.updateStartup(this.selectedStartup.id, {
       name: this.selectedStartup.name,
       logoUrl: this.selectedStartup.logoUrl
@@ -193,7 +199,7 @@ export class BackofficePage {
   // Salva (Aggiunge o Modifica)
   async saveEmployee() {
     if (!this.selectedStartup || !this.selectedStartup.id || !this.empFormName) return;
-
+    this.empFormImage = await this.dbService.uploadFile(this.empFormImage, `startups/${this.selectedStartup.name}/employees/${this.empFormName}`);
     const newEmpData: Employee = {
       name: this.empFormName,
       role: this.empFormRole,
@@ -240,16 +246,8 @@ export class BackofficePage {
 
   private handleFile(file: File, target: string) {
     if (target === 'privacyPdf') {
-      // 1. Controllo Tipo
-      if (file.type !== 'application/pdf') {
-        alert('Per favore carica solo file PDF.');
-        return;
-      }
-      // 2. Controllo Dimensione (Max 950KB per stare sicuri sotto il limite di 1MB)
-      if (file.size > 950 * 1024) {
-        alert(`File troppo grande (${(file.size / 1024 / 1024).toFixed(2)} MB). \nIl limite di Firestore è 1MB. Comprimi il PDF prima di caricarlo.`);
-        return;
-      }
+      this.handlePdfFile(file)
+      return;
     }
     const reader = new FileReader();
     reader.onload = () => {
@@ -258,24 +256,33 @@ export class BackofficePage {
       if (target === 'editStartup' && this.selectedStartup) this.selectedStartup.logoUrl = res;
       if (target === 'employee') this.empFormImage = res;
       if (target === 'thirdParty') this.newThirdPartyLogo = res;
+      if (target === 'editThirdParty' && this.selectedThirdParty) this.selectedThirdParty.logoUrl = res;
       if (target === 'tpEmployee') this.newTpEmpImage = res;
       if (target === 'newSupplier') this.newSupplierLogo = res;
-      if (target === 'privacyPdf') this.privacyPdf = res;
+      if (target === 'editSupplier' && this.selectedSupplier) this.selectedSupplier.logoUrl = res;
+      // if (target === 'privacyPdf') this.privacyPdf = res;
     };
     reader.readAsDataURL(file);
   }
 
 async savePrivacyPdf() {
-    if (!this.privacyPdf) return;
+    if (!this.rawPrivacyPdf) {
+      alert('Nessun file PDF selezionato.');
+      return;
+    }
     try {
-      await this.dbService.savePrivacyPdf(this.privacyPdf);
+      // const pdfUrl = await this.dbService.privacyPdfUrl$ .toPromise();
+      // const pdfUrl = await this.dbService.uploadFile(this.privacyPdf, 'config');
+      await this.dbService.savePrivacyPdf(this.rawPrivacyPdf);
+      // await this.dbService.savePrivacyPdf(pdfUrl!);
       alert('PDF Privacy salvato con successo!');
+
+      this.rawPrivacyPdf = null;
     } catch (e) {
       console.error(e);
       alert('Errore nel salvataggio. Riprova.');
     }
   }
-
   // --- AZIONI OSPITI ---
   async checkOut(guest: Guest) {
     if(confirm(`Confermi l'uscita di ${guest.name}?`)) {
@@ -307,6 +314,7 @@ async savePrivacyPdf() {
   // Crea Nuova
   async addSupplier() {
     if (!this.newSupplierName.trim()) return;
+    this.newSupplierLogo = await this.dbService.uploadFile(this.newSupplierLogo, `suppliers/${this.newSupplierName}/logo`);
     await this.dbService.addSupplier({
       name: this.newSupplierName,
       logoUrl: this.newSupplierLogo
@@ -321,7 +329,7 @@ async savePrivacyPdf() {
       this.dbService.updateSupplierStatus(supplier);
     }
   }
-    filterSuppliers(supplier: Supplier[]): Supplier[] {
+  filterSuppliers(supplier: Supplier[]): Supplier[] {
     if (!this.startupSearchTerm) return supplier;
     return supplier.filter(s => s.name.toLowerCase().includes(this.startupSearchTerm.toLowerCase()));
   }
@@ -339,6 +347,7 @@ async savePrivacyPdf() {
     // Salva Modifiche Startup (Edit)
   async updateSupplier() {
     if (!this.selectedSupplier || !this.selectedSupplier.id) return;
+    this.selectedSupplier.logoUrl = await this.dbService.uploadFile(this.selectedSupplier.logoUrl!, `suppliers/${this.selectedSupplier.name}/logo`);
     await this.dbService.updateSupplier(this.selectedSupplier.id, {
       name: this.selectedSupplier.name,
       logoUrl: this.selectedSupplier.logoUrl
@@ -348,6 +357,7 @@ async savePrivacyPdf() {
   // --- AZIONI UTENTI TERZI  ---
   async addThirdParty() {
     if (!this.newThirdPartyName) return;
+    this.newThirdPartyLogo = await this.dbService.uploadFile(this.newThirdPartyLogo, `thirdParties/${this.newThirdPartyName}/logo`);
     await this.dbService.addThirdParty({ name: this.newThirdPartyName, logoUrl: this.newThirdPartyLogo, employees: []});
     this.newThirdPartyName = ''; this.newThirdPartyLogo = '';
   }
@@ -357,21 +367,107 @@ async savePrivacyPdf() {
   }
 
   async addTpEmployee() {
-    if (!this.selectedThirdPartyId || !this.newTpEmpName) return;
+    if (!this.selectedThirdParty || !this.newTpEmpName) return;
+    this.newTpEmpImage = await this.dbService.uploadFile(this.newTpEmpImage, `thirdParties/${this.selectedThirdParty.name}/employees/${this.newTpEmpName}`);
     const emp: Employee = { name: this.newTpEmpName, role: this.newTpEmpRole, imageUrl: this.newTpEmpImage };
-    await this.dbService.addEmployeeToThirdParty(this.selectedThirdPartyId, emp);
+    await this.dbService.addEmployeeToThirdParty(this.selectedThirdParty.id!, emp);
     this.newTpEmpName = ''; this.newTpEmpRole = ''; this.newTpEmpImage = '';
   }
 
   async deleteTpEmployee(emp: Employee) {
-    if (!this.selectedThirdPartyId) return;
-    if(confirm('Rimuovere persona?')) this.dbService.removeEmployeeFromThirdParty(this.selectedThirdPartyId, emp.name);
+    if (!this.selectedThirdParty) return;
+    if(confirm('Rimuovere persona?')) this.dbService.removeEmployeeFromThirdParty(this.selectedThirdParty.id!, emp.name);
   }
 
   async checkTpEmployeeOut(employee: Employee, thirdParty: ThirdParty) {
     if(confirm('Confermi l\'uscita della persona?')) {
       this.dbService.updateTpEmployeeStatus(thirdParty.id!, employee.name, 'OUT');
     }
+  }
+
+      // Seleziona (Entra nel dettaglio)
+  selectThirdParty(s: ThirdParty) {
+    this.selectedThirdParty = { ...s }; // Crea una copia per l'editing sicuro
+    this.resetEmployeeForm();
+  }
+
+  // Deseleziona (Torna alla lista)
+  deselectThirdParty() {
+    this.selectedThirdParty = null;
+  }
+ filterThirdParties(thirdParties: ThirdParty[]): ThirdParty[] {
+    if (!this.thirdPartySearchTerm) return thirdParties;
+    return thirdParties.filter(s => s.name.toLowerCase().includes(this.thirdPartySearchTerm.toLowerCase()));
+  }
+    async updateThirdParty() {
+    if (!this.selectedThirdParty || !this.selectedThirdParty.id) return;
+    await this.dbService.updateThirdParty(this.selectedThirdParty.id, {
+      name: this.selectedThirdParty.name,
+      logoUrl: this.selectedThirdParty.logoUrl
+    });
+    alert('Utente Terzo aggiornato!');
+  }
+
+  saveTpEmployee() {
+    if (this.editingEmployee) {
+      this.dbService.updateTpEmployeeDetails(this.selectedThirdParty!.id!, this.editingEmployee, {
+        name: this.newTpEmpName,
+        role: this.newTpEmpRole,
+        imageUrl: this.newTpEmpImage
+      });
+    } else {
+      this.addTpEmployee();
+    }
+    this.newTpEmpName = '';
+    this.newTpEmpRole = '';
+    this.newTpEmpImage = '';
+    this.editingEmployee = null;
+  }
+
+    // Prepara il form per la modifica
+  editTpEmployee(emp: Employee) {
+    this.editingEmployee = emp; // Salviamo chi stiamo modificando
+    this.empFormName = emp.name;
+    this.empFormImage = emp.imageUrl || '';
+  }
+
+  removeNewStartupLogo() {
+    this.newStartupLogo = '';
+  }
+
+  // 2. Rimuovi Logo Startup Esistente (Modifica)
+  removeSelectedStartupLogo() {
+    if (this.selectedStartup) {
+      this.selectedStartup.logoUrl = '';
+    }
+  }
+
+  // 3. Rimuovi Foto Dipendente
+  removeEmployeeImage() {
+    this.empFormImage = '';
+  }
+
+  // 4. Rimuovi Logo Fornitore
+  removeSupplierLogo() {
+    this.newSupplierLogo = '';
+    if (this.selectedSupplier) {
+      this.selectedSupplier.logoUrl = ''; // Gestisce anche la modifica
+    }
+  }
+
+  // 5. Rimuovi Logo Terze Parti
+  removeThirdPartyLogo() {
+    this.newThirdPartyLogo = '';
+  }
+
+  // 6. Rimuovi Foto Dipendente Terze Parti
+  removeTpEmployeeImage() {
+    this.newTpEmpImage = '';
+  }
+  
+  // 7. Rimuovi PDF Privacy
+  removePrivacyPdf() {
+    this.privacyPdf = '';
   }
 
 }

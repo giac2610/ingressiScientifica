@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { getStorage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
 
 import { 
   Firestore, 
@@ -112,8 +113,74 @@ export class DatabaseService {
     });
   }
 
+async uploadFile(base64OrUrl: string, folder: string): Promise<string> {
+    // 1. Se è vuoto o è già un link web (http...), non fare nulla
+    if (!base64OrUrl || !base64OrUrl.startsWith('data:')) {
+      return base64OrUrl || '';
+    }
+
+    try {
+      // 2. Converti Base64 in Blob
+      const blob = this.dataURLtoBlob(base64OrUrl);
+      
+      // 3. Genera nome file unico
+      const mime = blob.type; 
+      const ext = mime.split('/')[1] || 'png'; 
+      const fileName = `${folder}/${new Date().getTime()}.${ext}`;
+      
+      // 4. Carica su Storage
+      const storage = getStorage();
+      const storageRef = ref(storage, fileName);
+      
+      await uploadBytes(storageRef, blob);
+      
+      // 5. Ottieni URL scaricabile
+      const downloadUrl = await getDownloadURL(storageRef);
+      console.log(`Upload completato in ${folder}:`, downloadUrl);
+      
+      return downloadUrl;
+
+    } catch (e) {
+      console.error('Errore Upload Storage:', e);
+      throw new Error('Impossibile caricare il file. Riprova.');
+    }
+  }
+
+  private dataURLtoBlob(dataurl: string): Blob {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  }
 // Converte la stringa Base64 (salvata in Firestore) in un Blob reale
-// src/app/services/database.ts
+  base64ToBlob(base64: string): Blob {
+    try {
+      // 1. Rimuovi l'intestazione "data:application/pdf;base64," se presente
+      const base64Clean = base64.split(',')[1] || base64;
+      
+      // 2. Decodifica la stringa
+      const byteCharacters = atob(base64Clean);
+      const byteNumbers = new Array(byteCharacters.length);
+      
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      
+      // 3. Ritorna il Blob (File)
+      return new Blob([byteArray], { type: 'application/pdf' });
+    } catch (e) {
+      console.error("Errore conversione PDF", e);
+      return new Blob([], { type: 'application/pdf' }); // Ritorna blob vuoto per non rompere tutto
+    }
+  }
+
   // ==========================================
   // GESTIONE OSPITI
   // ==========================================
@@ -332,7 +399,7 @@ export class DatabaseService {
     const updatedEmployees = employees.map(e => {
       // Confrontiamo per nome e ruolo (o potremmo usare un ID se lo avessimo)
       if (e.name === oldEmp.name && e.role === oldEmp.role) {
-        return { ...newEmp, status: e.status || 'OUT', lastEntryTime: e.lastEntryTime || null }; // Mantieni lo stato IN/OUT
+        return { ...newEmp, status: e.status || 'OUT', lastEntryTime: e.lastEntryTime || null}; // Mantieni lo stato IN/OUT
       }
       return e;
     });
@@ -618,6 +685,26 @@ export class DatabaseService {
     });
   }
 
+    // Modifica dati Dipendente (Trova il vecchio e lo sostituisce col nuovo)
+  async updateTpEmployeeDetails(thirdPartyId: string, oldEmp: Employee, newEmp: Employee) {
+    const thirdPartyRef = doc(this.firestore, 'third_parties', thirdPartyId);
+    
+    // Leggi array attuale
+    const snapshot = await getDoc(thirdPartyRef);
+    if (!snapshot.exists()) throw new Error("Utente Terzo non trovato");
+    const employees = (snapshot.data() as ThirdParty).employees || [];
+
+    // Trova e sostituisci
+    const updatedEmployees = employees.map(e => {
+      // Confrontiamo per nome e ruolo (o potremmo usare un ID se lo avessimo)
+      if (e.name === oldEmp.name && e.role === oldEmp.role) {
+        return { ...newEmp, status: e.status, lastEntryTime: e.lastEntryTime }; // Mantieni lo stato IN/OUT
+      }
+      return e;
+    });
+
+    return updateDoc(thirdPartyRef, { employees: updatedEmployees });
+  }
   // ==========================================
   // CONFIGURAZIONE GLOBALE (Privacy, ecc.)
   // ==========================================
@@ -636,13 +723,44 @@ export class DatabaseService {
   }
 
 
-  async savePrivacyPdf(base64: string) {
-    const docRef = doc(this.firestore, 'config', 'main');
-    // Usa setDoc con merge:true per non sovrascrivere altri campi
-    const { setDoc } = await import('@angular/fire/firestore');
-    return setDoc(docRef, { privacyPdfBase64: base64 }, { merge: true });
+// Carica il PDF grezzo su Storage e salva il link nel DB
+  async savePrivacyPdf(pdfFile: File) {
+    try {
+      // 1. Definisci il percorso su Storage
+      const fileName = `privacy_${Date.now()}.pdf`;
+      const filePath = `privacy_files/${fileName}`;
+      const storageRef = ref(getStorage(), filePath);
+
+      // 2. Carica il file FISICO direttamente (Niente Base64!)
+      console.log('Caricamento PDF su Storage...');
+      await uploadBytes(storageRef, pdfFile);
+
+      // 3. Ottieni il link pubblico
+      const downloadUrl = await getDownloadURL(storageRef);
+      console.log('PDF caricato:', downloadUrl);
+
+      // 4. Salva il link su Firestore
+      const docRef = doc(this.firestore, 'config', 'main');// Import dinamico se serve o usa quello statico
+
+      return setDoc(docRef, { privacyPdfUrl: downloadUrl }, { merge: true });
+
+    } catch (error) {
+      console.error('Errore salvataggio PDF:', error);
+      throw error;
+    }
   }
 
+  get privacyPdfUrl$(): Observable<string> {
+    return new Observable(observer => {
+      const configRef = doc(this.firestore, 'config', 'main');
+      const unsubscribe = onSnapshot(configRef, (snap) => {
+        const data = snap.data() as AppConfig;
+        observer.next(data?.privacyPdfUrl || '');
+      });
+      return () => unsubscribe();
+    });
+  }
+  
   // Helper: Converte URL immagine in Base64
   private async imageUrlToBase64(url: string): Promise<string> {
     try {
