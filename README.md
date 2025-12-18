@@ -1,13 +1,11 @@
 # Ingressi Scientifica - Sistema di Gestione Accessi
 
-parla di github secrets e actions!!!
-
 Questo progetto è una **Web App** sviluppata con **Ionic** e **Angular**, progettata per gestire il flusso di ingressi e uscite presso la struttura *Scientifica*.
 
-L'applicazione funge da duplice interfaccia:
+L'applicazione è divisa in due parti:
 
-1. **Kiosk (Frontend):** Per la registrazione self-service degli ospiti e il check-in rapido dei dipendenti, fornitori e utenti terzi.
-2. **Backoffice (Dashboard):** Per l'amministrazione delle anagrafiche (Startup, Dipendenti, Fornitori).
+1. **Kiosk (Frontend - [Branch master](https://github.com/Ventiseidieci/ingressiScientifica/)):** Per la registrazione self-service degli ospiti e il check-in rapido dei dipendenti, fornitori e utenti terzi.
+2. **Backoffice (Dashboard - [Branch backoffice](https://github.com/Ventiseidieci/ingressiScientifica/tree/backoffice)):** Per l'amministrazione delle anagrafiche (Startup, Dipendenti, Fornitori).
 
 - [Ingressi Scientifica - Sistema di Gestione Accessi](#ingressi-scientifica---sistema-di-gestione-accessi)
   - [Download](#download)
