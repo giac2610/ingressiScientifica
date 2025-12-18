@@ -1,5 +1,5 @@
 import { addIcons } from 'ionicons';
-import { create, checkmarkCircle, refreshOutline, linkOutline, documentTextOutline, alertCircleOutline } from 'ionicons/icons';
+import { create, checkmarkCircle, refreshOutline, linkOutline, documentTextOutline, alertCircleOutline, arrowBackOutline } from 'ionicons/icons';
 import { ActiveEmployeeResult } from './../../services/database';
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, Renderer2, inject } from '@angular/core';
 import { IonContent, IonSelect, IonCheckbox, ToastController, IonButton, IonSelectOption, IonRow, IonGrid, IonCol, IonCard, IonCardTitle, IonCardContent, IonInput, IonCardHeader, IonItem, IonIcon, IonModal, IonToolbar, IonHeader, IonTitle, IonButtons, IonFooter, IonAvatar, IonBadge, IonLabel, IonList,IonSearchbar } from '@ionic/angular/standalone';
@@ -139,35 +139,17 @@ export class HomePage implements AfterViewInit, OnDestroy {
     private router: Router,
     private sanitizer: DomSanitizer
   ){
-    addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline});
-// Assicurati di avere questa variabile nella classe:
-// privacyPdfSrc: string | null = null;
+    addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline, arrowBackOutline});
+    this.dbService.getAppConfig().subscribe(config => {
+      console.log('Configurazione ricevuta:', config);
 
-this.dbService.getAppConfig().subscribe(config => {
-  console.log('Configurazione ricevuta:', config);
-
-  if (config && config.privacyPdfUrl) {
-    // CASO 1: È un link di Firebase Storage (Nuovo Metodo)
-    if (config.privacyPdfUrl.startsWith('http')) {
-      console.log('PDF rilevato da URL:', config.privacyPdfUrl);
-      this.privacyPdfSrc = config.privacyPdfUrl;
-    } 
-    // CASO 2: È un vecchio Base64 (Vecchio Metodo - Compatibilità)
-    else {
-      console.log('PDF rilevato come Base64, converto...');
-      try {
-        const blob = this.dbService.base64ToBlob(config.privacyPdfUrl);
-        this.privacyPdfSrc = URL.createObjectURL(blob);
-      } catch (err) {
-        console.error('Errore lettura PDF vecchio:', err);
-        this.privacyPdfSrc = null; // Mostrerà "Nessun documento" invece di crashare
+      if (config && config.privacyPdfUrl) {
+        // Assegniamo direttamente la stringa
+        this.privacyPdfSrc = config.privacyPdfUrl;
+      } else {
+        this.privacyPdfSrc = null;
       }
-    }
-  } else {
-    // Nessun PDF configurato
-    this.privacyPdfSrc = null;
-  }
-});
+    });
   }
 
   activeGuests$ = this.dbService.getActiveGuests();
@@ -275,6 +257,15 @@ this.dbService.getAppConfig().subscribe(config => {
     });
   }
 
+  get employeesOut(): Employee[] {
+    return this.filteredEmployees.filter(e => e.status !== 'IN');
+  }
+
+  // Lista di chi è già dentro (IN)
+  get employeesIn(): Employee[] {
+    return this.filteredEmployees.filter(e => e.status === 'IN');
+  }
+
   // SUPPLIERS
   selectSupplier(supplier: Supplier) {
     this.selectedSupplier = supplier;
@@ -325,6 +316,15 @@ this.dbService.getAppConfig().subscribe(config => {
       // Alfabetico
       return a.name.localeCompare(b.name);
     });
+  }
+
+  get tpEmployeesOut(): Employee[] {
+    return this.filteredTpEmployees.filter(e => e.status !== 'IN');
+  }
+
+  // Lista di chi è già dentro (IN)
+  get tpEmployeesIn(): Employee[] {
+    return this.filteredTpEmployees.filter(e => e.status === 'IN');
   }
 
   async toggleTpEmployee(employee: Employee) {
@@ -628,18 +628,23 @@ this.dbService.getAppConfig().subscribe(config => {
   }
 
   // Calcola coordinate relative al canvas
+// Calcola coordinate relative al canvas (con correzione scala)
   getCoordinates(ev: any) {
     let x, y;
     const rect = this.signaturePadElement.getBoundingClientRect();
     
+    // Calcoliamo il rapporto tra pixel reali e dimensioni visive
+    const scaleX = this.signaturePadElement.width / rect.width;
+    const scaleY = this.signaturePadElement.height / rect.height;
+
     if (ev.changedTouches && ev.changedTouches.length > 0) {
       // Touch event
-      x = ev.changedTouches[0].clientX - rect.left;
-      y = ev.changedTouches[0].clientY - rect.top;
+      x = (ev.changedTouches[0].clientX - rect.left) * scaleX;
+      y = (ev.changedTouches[0].clientY - rect.top) * scaleY;
     } else {
       // Mouse event
-      x = ev.clientX - rect.left;
-      y = ev.clientY - rect.top;
+      x = (ev.clientX - rect.left) * scaleX;
+      y = (ev.clientY - rect.top) * scaleY;
     }
     return { x, y };
   }

@@ -7,9 +7,9 @@
     <div class="logo" data-maxheight="60">
       <img fetchpriority="high" decoding="async" src="https://scientifica.vc/wp-content/uploads/2025/05/Favicon-Scientifica_Positive.png" alt="logo" class="img-responsive" data-cmp-info="10">
     </div>
-    <div class="backoffice">
+    <!-- <div class="backoffice">
       <h2 (click)="navigateToBackoffice()">Backoffice</h2>
-    </div>
+    </div> -->
   </div>
 
   <!-- MAIN MENU -->
@@ -67,57 +67,89 @@
   <div class="menu-wrapper" [class.active]="currentView === 'startupEmployees'">
     <ion-card class="input-card" style="max-width: 700px;">
       <ion-card-header>
-        <ion-card-title>
-          {{ selectedStartup?.name }} - Team
-        </ion-card-title>
-        <ion-searchbar 
-          placeholder="Cerca collega..." 
-          animated="true"
-          debounce="300"
-          (ionInput)="handleEmployeeSearch($event)">
-        </ion-searchbar>
+        <ion-row>
+          <ion-button fill="clear" (click)="setView('startup')" color="medium" expand="block">
+            <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-card-title>
+            {{ selectedStartup?.name }} - Team
+          </ion-card-title>
+          <ion-searchbar 
+            placeholder="Cerca collega..." 
+            animated="true"
+            debounce="300"
+            (ionInput)="handleEmployeeSearch($event)">
+          </ion-searchbar>
+        </ion-row>
       </ion-card-header>
 
       <ion-card-content>
         <ng-container *ngIf="ActiveEmployeeResult$ | async as ActiveEmployeeResult">
           <ion-grid>
-            <ion-row class="employees-row">
-              @for (emp of filteredEmployees; track emp.name) {
-                <ion-col size="6" size-sm="4">
-                  <div 
-                    class="employee-badge" 
-                    [class.is-present]="emp.status === 'IN'"
-                    (click)="toggleEmployeeEntry(emp)">
-                    
-                    <ion-avatar class="emp-avatar">
-                      <img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
-                    </ion-avatar>
-                    
-                    <div class="emp-info">
-                      <strong>{{ emp.name }}</strong>
-                      <small>{{ emp.role }}</small>
+            
+            <div *ngIf="employeesOut.length > 0">
+              <h3 style="margin-left: 10px; color: var(--ion-color-medium);">Da Registrare</h3>
+              <ion-row class="employees-row">
+                @for (emp of employeesOut; track emp.name) {
+                  <ion-col size="6" size-sm="4">
+                    <div 
+                      class="employee-badge" 
+                      (click)="toggleEmployeeEntry(emp)">
+                      
+                      <ion-avatar class="emp-avatar">
+                        <img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'" loading="lazy" />
+                      </ion-avatar>
+                      
+                      <div class="emp-info">
+                        <strong>{{ emp.name }}</strong>
+                        <!-- <small>{{ emp.role }}</small> -->
+                      </div>
+
+                      <ion-badge color="medium" style="margin-top: 5px;">
+                        ENTRA
+                      </ion-badge>
                     </div>
+                  </ion-col>
+                }
+              </ion-row>
+            </div>
 
-                    <ion-badge [color]= "emp.status === 'IN' ? 'success' : 'medium'" style="margin-top: 5px;">
-                      {{ emp.status === 'IN'  ? 'PRESENTE' : 'ENTRA' }}
-                    </ion-badge>
+            <div *ngIf="employeesIn.length > 0">
+              <h3 style="margin-left: 10px; margin-top: 20px; color: var(--ion-color-success);">Presenti in Sede</h3>
+              <ion-row class="employees-row">
+                @for (emp of employeesIn; track emp.name) {
+                  <ion-col size="6" size-sm="4">
+                    <div 
+                      class="employee-badge is-present" 
+                      (click)="toggleEmployeeEntry(emp)">
+                      
+                      <ion-avatar class="emp-avatar">
+                        <img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'" loading="lazy" />
+                      </ion-avatar>
+                      
+                      <div class="emp-info">
+                        <strong>{{ emp.name }}</strong>
+                        <!-- <small>{{ emp.role }}</small> -->
+                      </div>
 
-                  </div>
+                      <ion-badge color="warning" style="margin-top: 5px;">
+                        ESCI
+                      </ion-badge>
+                    </div>
+                  </ion-col>
+                }
+              </ion-row>
+            </div>
 
-                </ion-col>
-              } @empty {
-                <ion-col>
-                  <p>Nessun dipendente registrato per questa azienda.</p>
-                </ion-col>
-              }
-            </ion-row>
+            <div *ngIf="filteredEmployees.length === 0" class="ion-text-center ion-padding">
+              <p>Nessun dipendente trovato.</p>
+            </div>
+
           </ion-grid>
 
         </ng-container>
 
-        <ion-button fill="clear" (click)="setView('startup')" color="medium" expand="block">
-          Torna alle Startup
-        </ion-button>
+
 
       </ion-card-content>
     </ion-card>
@@ -245,7 +277,7 @@
 
                 
                 <ion-card-content style="color: #333; font-weight: bold; font-size: 1.2em;">
-                  <div *ngIf="sup.status === 'IN'" slot="end" class="live-indicator"></div>
+                  <!-- <div *ngIf="sup.status === 'IN'" slot="end" class="live-indicator"></div> -->
                   @if (!sup.logoUrl){
                     {{ sup.name }}
                   }
@@ -333,56 +365,85 @@
   <div class="menu-wrapper" [class.active]="currentView === 'thirdPartyEmployees'">
     <ion-card class="input-card" style="max-width: 700px;">
       <ion-card-header>
-        <ion-card-title>
-          {{ selectedThirdPartie?.name }} - Dipendenti
-        </ion-card-title>
-        <ion-searchbar 
-          placeholder="Cerca dipendente..." 
-          animated="true"
-          debounce="300"
-          (ionInput)="handleTpEmployeeSearch($event)">
-        </ion-searchbar>
+        <ion-row>
+          <ion-button fill="clear" (click)="setView('thirdParties')" color="medium" expand="block">
+            <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-card-title>
+            {{ selectedThirdPartie?.name }} - Dipendenti
+          </ion-card-title>
+          <ion-searchbar 
+            placeholder="Cerca dipendente..." 
+            animated="true"
+            debounce="300"
+            (ionInput)="handleTpEmployeeSearch($event)">
+          </ion-searchbar>
+        </ion-row>
       </ion-card-header>
 
       <ion-card-content>
         <ng-container *ngIf="activeTpEmployeeResult$ | async as ActiveTpEmployeeResult">
           <ion-grid>
-            <ion-row class="employees-row">
-              @for (emp of filteredTpEmployees; track emp.name) {
-                <ion-col size="6" size-sm="4">
-                  <div 
-                    class="employee-badge" 
-                    [class.is-present]="emp.status === 'IN'"
-                    (click)="toggleTpEmployee(emp)">
-                    
-                    <ion-avatar class="emp-avatar">
-                      <img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
-                    </ion-avatar>
-                    
-                    <div class="emp-info">
-                      <strong>{{ emp.name }}</strong>
+
+            <div *ngIf="tpEmployeesOut.length > 0">
+              <h3 style="margin-left: 10px; color: var(--ion-color-medium);">Da Registrare</h3>
+              <ion-row class="employees-row">
+                @for (emp of tpEmployeesOut; track emp.name) {
+                  <ion-col size="6" size-sm="4">
+                    <div 
+                      class="employee-badge" 
+                      (click)="toggleTpEmployee(emp)">
+                      
+                      <ion-avatar class="emp-avatar">
+                        <img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'" />
+                      </ion-avatar>
+                      
+                      <div class="emp-info">
+                        <strong>{{ emp.name }}</strong>
+                      </div>
+  
+                      <ion-badge color="medium" style="margin-top: 5px;">
+                        ENTRA
+                      </ion-badge>
+  
                     </div>
+  
+                  </ion-col>
+                } 
+                </ion-row>
+                </div>
+                <div *ngIf="tpEmployeesIn.length > 0">
+                    <h3 style="margin-left: 10px; margin-top: 20px; color: var(--ion-color-success);">Presenti in Sede</h3>
+                  <ion-row>
+                    @for (emp of tpEmployeesIn; track emp.name) {
+                  <ion-col size="6" size-sm="4">
+                    <div 
+                      class="employee-badge is-present" 
+                      (click)="toggleEmployeeEntry(emp)">
+                      
+                      <ion-avatar class="emp-avatar">
+                        <img [src]="emp.imageUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'" loading="lazy" />
+                      </ion-avatar>
+                      
+                      <div class="emp-info">
+                        <strong>{{ emp.name }}</strong>
+                        <!-- <small>{{ emp.role }}</small> -->
+                      </div>
 
-                    <ion-badge [color]= "emp.status === 'IN' ? 'success' : 'medium'" style="margin-top: 5px;">
-                      {{ emp.status === 'IN'  ? 'PRESENTE' : 'ENTRA' }}
-                    </ion-badge>
-
-                  </div>
-
-                </ion-col>
-              } @empty {
-                <ion-col>
-                  <p>Nessun dipendente registrato per questa azienda.</p>
-                </ion-col>
-              }
-            </ion-row>
+                      <ion-badge color="warning" style="margin-top: 5px;">
+                        ESCI
+                      </ion-badge>
+                    </div>
+                  </ion-col>
+                }
+                </ion-row>
+              </div>
+              <div *ngIf="filteredTpEmployees.length === 0" class="ion-text-center ion-padding">
+                <p>Nessun dipendente trovato.</p>
+              </div>
           </ion-grid>
 
         </ng-container>
-
-        <ion-button fill="clear" (click)="setView('thirdParties')" color="medium" expand="block">
-          Torna agli Utenti Terzi
-        </ion-button>
 
       </ion-card-content>
     </ion-card>
@@ -399,68 +460,76 @@
         </ion-toolbar>
       </ion-header>
       
-      <ion-content class="ion-padding">
-        <div class="pdf-viewer-container">
-  
-          <ng-container *ngIf="privacyPdfSrc; else noPdf">
-            <!-- <iframe [src]="privacyPdfUrl" type="application/pdf" width="100%" hieght="100%" title="Privacy Policy"></iframe> -->
-            <pdf-viewer
-              [src]="privacyPdfSrc"
-              [rotation]="0"
-              [original-size]="false"
-              [show-all]="true"
-              [fit-to-page]="false"
-              [zoom]="1"
-              [zoom-scale]="'page-width'"
-              [stick-to-page]="false"
-              [render-text]="true"
-              [external-link-target]="'blank'"
-              [autoresize]="true"
-              [show-borders]="false"
-              style="display: block; height: 80vh;" 
-            ></pdf-viewer>
-          </ng-container>
-  
-          <ng-template #noPdf>
-            <div class="pdf-error">
-              <ion-icon name="alert-circle-outline"></ion-icon>
-              <p>Nessuna informativa caricata</p>
-            </div>
-          </ng-template>
-
-        </div>
-        <div class="privacy-checks ion-margin-top">
-          <ion-item lines="none" class="checkbox-item">
-            <ion-checkbox slot="start" [(ngModel)]="checkConsense1" aria-label="Consenso 1"></ion-checkbox>
-            <ion-label class="ion-text-wrap" style="font-size: 0.9em;">
-              Dichiaro di aver letto e compreso il vincolo di riservatezza e le conseguenze legali in caso di violazione.
-            </ion-label>
-          </ion-item>
-
-          <ion-item lines="none" class="checkbox-item">
-            <ion-checkbox slot="start" [(ngModel)]="checkConsense2" aria-label="Consenso 2"></ion-checkbox>
-            <ion-label class="ion-text-wrap" style="font-size: 0.9em;">
-              Accetto il trattamento dei dati personali per le finalità di sicurezza descritte.
-            </ion-label>
-          </ion-item>
-        </div>
-
-        <div class="signature-area">
-          <p>Firma qui sotto:</p>
-          <canvas #signatureCanvas 
-            (mousedown)="startDrawing($event)" (touchstart)="startDrawing($event)"
-            (mousemove)="moved($event)" (touchmove)="moved($event)"
-            (mouseup)="endDrawing()" (touchend)="endDrawing()"
-            class="signature-pad">
-          </canvas>
+<ion-content class="ion-padding" style="--background: #fff;">
+        
+        <div class="modal-split-layout">
           
-          <ion-button size="small" fill="outline" color="medium" (click)="clearSignature()">
-            <ion-icon name="refresh-outline" slot="start"></ion-icon>
-            Cancella Firma
-          </ion-button>
-        </div>
-      </ion-content>
+          <div class="left-col">
+            <div class="pdf-viewer-container">
+              <ng-container *ngIf="privacyPdfSrc; else noPdf">
+                <pdf-viewer
+                  [src]="privacyPdfSrc"
+                  [rotation]="0"
+                  [original-size]="false"
+                  [show-all]="true"
+                  [fit-to-page]="false"
+                  [zoom]="1"
+                  [zoom-scale]="'page-width'"
+                  [stick-to-page]="false"
+                  [render-text]="true"
+                  [external-link-target]="'blank'"
+                  [autoresize]="true"
+                  [show-borders]="false"
+                  class="pdf-viewer-custom"
+                ></pdf-viewer>
+              </ng-container>
+      
+              <ng-template #noPdf>
+                <div class="pdf-error">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <p>Nessuna informativa caricata</p>
+                </div>
+              </ng-template>
+            </div>
+          </div>
 
+          <div class="right-col">
+            
+            <div class="privacy-checks">
+              <ion-item lines="none" class="checkbox-item">
+                <ion-checkbox slot="start" [(ngModel)]="checkConsense1"></ion-checkbox>
+                <ion-label class="ion-text-wrap">
+                  Dichiaro di aver letto e compreso il vincolo di riservatezza.
+                </ion-label>
+              </ion-item>
+
+              <ion-item lines="none" class="checkbox-item">
+                <ion-checkbox slot="start" [(ngModel)]="checkConsense2"></ion-checkbox>
+                <ion-label class="ion-text-wrap">
+                  Accetto il trattamento dei dati personali.
+                </ion-label>
+              </ion-item>
+            </div>
+
+            <div class="signature-area">
+              <p>Firma qui sotto:</p>
+              <canvas #signatureCanvas 
+                (mousedown)="startDrawing($event)" (touchstart)="startDrawing($event)"
+                (mousemove)="moved($event)" (touchmove)="moved($event)"
+                (mouseup)="endDrawing()" (touchend)="endDrawing()"
+                class="signature-pad">
+              </canvas>
+              
+              <ion-button size="small" fill="outline" color="medium" (click)="clearSignature()">
+                <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                Cancella Firma
+              </ion-button>
+            </div>
+
+          </div>
+        </div>
+
+      </ion-content>
       <ion-footer>
         <ion-toolbar>
           <ion-row>
