@@ -141,10 +141,13 @@ export class HomePage implements AfterViewInit, OnDestroy {
   ){
     addIcons({create, checkmarkCircle, refreshOutline, alertCircleOutline, documentTextOutline, linkOutline, arrowBackOutline});
     this.dbService.getAppConfig().subscribe(config => {
-      // Se esiste l'URL, lo usiamo direttamente
-      if (config.privacyPdfUrl) {
-        console.log('Nuovo PDF trovato:', config.privacyPdfUrl);
+      console.log('Configurazione ricevuta:', config);
+
+      if (config && config.privacyPdfUrl) {
+        // Assegniamo direttamente la stringa
         this.privacyPdfSrc = config.privacyPdfUrl;
+      } else {
+        this.privacyPdfSrc = null;
       }
     });
   }
